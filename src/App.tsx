@@ -368,20 +368,27 @@ export default function App() {
 
   const touchStateRef = useRef({
       moveTouchId: null as number | null,
+      jumpTouchId: null as number | null,
       startX: 0,
       touches: new Set<number>()
   });
 
   const handleTouchStart = (e: React.TouchEvent) => {
+      const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
       for (let i = 0; i < e.changedTouches.length; i++) {
           const touch = e.changedTouches[i];
           touchStateRef.current.touches.add(touch.identifier);
           
-          keysRef.current.ArrowUp = true;
+          const isLeftHalf = (touch.clientX - rect.left) < rect.width / 2;
 
-          if (touchStateRef.current.moveTouchId === null) {
-              touchStateRef.current.moveTouchId = touch.identifier;
-              touchStateRef.current.startX = touch.clientX;
+          if (isLeftHalf) {
+              if (touchStateRef.current.moveTouchId === null) {
+                  touchStateRef.current.moveTouchId = touch.identifier;
+                  touchStateRef.current.startX = touch.clientX;
+              }
+          } else {
+              keysRef.current.ArrowUp = true;
+              touchStateRef.current.jumpTouchId = touch.identifier;
           }
       }
   };
@@ -417,16 +424,20 @@ export default function App() {
               touchStateRef.current.moveTouchId = null;
               keysRef.current.ArrowLeft = false;
               keysRef.current.ArrowRight = false;
-              
-              if (e.touches.length > 0) {
-                  touchStateRef.current.moveTouchId = e.touches[0].identifier;
-                  touchStateRef.current.startX = e.touches[0].clientX;
-              }
+          }
+          
+          if (touch.identifier === touchStateRef.current.jumpTouchId) {
+              touchStateRef.current.jumpTouchId = null;
+              keysRef.current.ArrowUp = false;
           }
       }
       
       if (e.touches.length === 0) {
           keysRef.current.ArrowUp = false;
+          keysRef.current.ArrowLeft = false;
+          keysRef.current.ArrowRight = false;
+          touchStateRef.current.moveTouchId = null;
+          touchStateRef.current.jumpTouchId = null;
       }
   };
 
