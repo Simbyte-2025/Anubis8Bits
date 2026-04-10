@@ -72,6 +72,14 @@ const paletteMap: Record<number, string> = {
     4: COLORS.catSocks
 };
 
+interface Platform {
+    x: number; y: number; w: number; h: number; isGoal?: boolean;
+}
+
+interface Coin {
+    x: number; y: number; w: number; h: number; collected: boolean;
+}
+
 export default function App() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -93,6 +101,7 @@ export default function App() {
     score: 0,
     isGameOver: false,
     frameCount: 0,
+    levelWidth: 0,
     player: {
         x: 50,
         y: 100,
@@ -108,8 +117,8 @@ export default function App() {
         scale: 4,
         animFrame: 0
     },
-    platforms: [] as any[],
-    coins: [] as any[]
+    platforms: [] as Platform[],
+    coins: [] as Coin[]
   });
 
   // Expose a reset function
@@ -138,6 +147,7 @@ export default function App() {
     }
     
     state.platforms.push({ x: currentX, y: 400, w: 300, h: 200, isGoal: true });
+    state.levelWidth = currentX + 300;
 
     state.player.x = 50;
     state.player.y = 500 - state.player.height;
@@ -194,7 +204,7 @@ export default function App() {
         }
 
         player.vy += player.gravity;
-        if (player.vy > 15) player.vy = 15;
+        if (player.vy > 16) player.vy = 16;
 
         let nextX = player.x + player.vx;
         let nextY = player.y + player.vy;
@@ -210,26 +220,30 @@ export default function App() {
                     player.vy = 0;
                     player.isGrounded = true;
                     nextY = player.y;
-                    
+
                     if (p.isGoal) {
                         state.isGameOver = true;
                         setGameState('won');
                     }
+                    break;
                 }
                 else if (player.vy < 0 && player.y >= p.y + p.h) {
                     player.y = p.y + p.h;
                     player.vy = 0;
                     nextY = player.y;
+                    break;
                 }
                 else if (player.vx > 0 && player.x + player.width <= p.x) {
                     player.x = p.x - player.width;
                     player.vx = 0;
                     nextX = player.x;
+                    break;
                 }
                 else if (player.vx < 0 && player.x >= p.x + p.w) {
                     player.x = p.x + p.w;
                     player.vx = 0;
                     nextX = player.x;
+                    break;
                 }
             }
         }
@@ -258,6 +272,8 @@ export default function App() {
             state.cameraX = player.x - cameraMargin;
         }
         if (state.cameraX < 0) state.cameraX = 0;
+        const maxCameraX = state.levelWidth - GAME_WIDTH;
+        if (maxCameraX > 0 && state.cameraX > maxCameraX) state.cameraX = maxCameraX;
 
         if (player.y > GAME_HEIGHT + 100) {
             state.isGameOver = true;
@@ -315,10 +331,11 @@ export default function App() {
             }
         }
 
+        const floatOffset = Math.sin(state.frameCount * 0.1) * 5;
         for (let c of state.coins) {
             if (!c.collected) {
+                const floatY = c.y + floatOffset;
                 ctx.fillStyle = COLORS.coin;
-                const floatY = c.y + Math.sin(state.frameCount * 0.1) * 5;
                 ctx.fillRect(c.x, floatY, c.w, c.h);
                 ctx.fillStyle = '#FFF';
                 ctx.fillRect(c.x + 4, floatY + 4, c.w/3, c.h/3);
@@ -346,13 +363,13 @@ export default function App() {
     gameLoop();
 
     const handleKeyDown = (e: KeyboardEvent) => {
-        if (keysRef.current.hasOwnProperty(e.code)) {
-            (keysRef.current as any)[e.code] = true;
+        if (e.code in keysRef.current) {
+            keysRef.current[e.code as keyof typeof keysRef.current] = true;
         }
     };
     const handleKeyUp = (e: KeyboardEvent) => {
-        if (keysRef.current.hasOwnProperty(e.code)) {
-            (keysRef.current as any)[e.code] = false;
+        if (e.code in keysRef.current) {
+            keysRef.current[e.code as keyof typeof keysRef.current] = false;
         }
     };
 
@@ -433,9 +450,6 @@ export default function App() {
       }
       
       if (e.touches.length === 0) {
-          keysRef.current.ArrowUp = false;
-          keysRef.current.ArrowLeft = false;
-          keysRef.current.ArrowRight = false;
           touchStateRef.current.moveTouchId = null;
           touchStateRef.current.jumpTouchId = null;
       }
