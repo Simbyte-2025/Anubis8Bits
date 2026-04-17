@@ -170,6 +170,72 @@ export const levels: LevelData[] = [
       { kind: 'shield', x: 3520, y: 160, w: 24, h: 24 }
     ],
     goal: { x: 4750, y: 380, w: 150, h: 24, isGoal: true }
+  },
+  {
+    id: 4,
+    name: 'Tejado pyhare',
+    theme: 'rooftops',
+    cameraMaxX: 4600,
+    player: { x: 50, y: groundY - 52 },
+    platforms: [
+      { x: 0, y: groundY, w: 320, h: groundH },
+      { x: 400, y: 460, w: 160, h: 24 },
+      { x: 620, y: 420, w: 140, h: 24 },
+      { x: 820, y: 360, w: 140, h: 24 },
+      { x: 1020, y: 300, w: 160, h: 24 },
+      { x: 1240, y: 360, w: 140, h: 24 },
+      { x: 1440, y: 420, w: 140, h: 24 },
+      { x: 1640, y: groundY, w: 360, h: groundH },
+      { x: 2080, y: 460, w: 80, h: 24 },
+      { x: 2220, y: 380, w: 80, h: 24 },
+      { x: 2360, y: 300, w: 100, h: 24 },
+      { x: 2520, y: 220, w: 80, h: 24 },
+      { x: 2680, y: 300, w: 80, h: 24 },
+      { x: 2820, y: 380, w: 80, h: 24 },
+      { x: 2960, y: 460, w: 80, h: 24 },
+      { x: 3100, y: groundY, w: 360, h: groundH },
+      { x: 3540, y: 440, w: 100, h: 24 },
+      { x: 3700, y: 360, w: 100, h: 24 },
+      { x: 3860, y: 280, w: 120, h: 24 },
+      { x: 4040, y: 360, w: 100, h: 24 },
+      { x: 4200, y: 440, w: 100, h: 24 }
+    ],
+    coins: [
+      { x: 440, y: 420, w: 20, h: 20 },
+      { x: 660, y: 380, w: 20, h: 20 },
+      { x: 860, y: 320, w: 20, h: 20 },
+      { x: 1070, y: 260, w: 20, h: 20 },
+      { x: 1280, y: 320, w: 20, h: 20 },
+      { x: 1480, y: 380, w: 20, h: 20 },
+      { x: 1750, y: 460, w: 20, h: 20 },
+      { x: 1900, y: 460, w: 20, h: 20 },
+      { x: 2110, y: 420, w: 20, h: 20 },
+      { x: 2250, y: 340, w: 20, h: 20 },
+      { x: 2400, y: 260, w: 20, h: 20 },
+      { x: 2560, y: 180, w: 20, h: 20 },
+      { x: 2710, y: 260, w: 20, h: 20 },
+      { x: 2850, y: 340, w: 20, h: 20 },
+      { x: 2990, y: 420, w: 20, h: 20 },
+      { x: 3200, y: 460, w: 20, h: 20 },
+      { x: 3580, y: 400, w: 20, h: 20 },
+      { x: 3740, y: 320, w: 20, h: 20 },
+      { x: 3910, y: 240, w: 20, h: 20 },
+      { x: 4080, y: 320, w: 20, h: 20 },
+      { x: 4240, y: 400, w: 20, h: 20 }
+    ],
+    enemies: [
+      { kind: 'bat', x: 900, y: 200, w: 36, h: 28, patrolMin: 800, patrolMax: 1300 },
+      { kind: 'beetle', x: 1700, y: groundY - 32, w: 36, h: 32, patrolMin: 1640, patrolMax: 1990 },
+      { kind: 'bat', x: 2550, y: 120, w: 36, h: 28, patrolMin: 2400, patrolMax: 2750 },
+      { kind: 'beetle', x: 3200, y: groundY - 32, w: 36, h: 32, patrolMin: 3100, patrolMax: 3450 },
+      { kind: 'bat', x: 3900, y: 180, w: 36, h: 28, patrolMin: 3700, patrolMax: 4150 }
+    ],
+    powerUps: [
+      { kind: 'shield', x: 1020, y: 260, w: 24, h: 24 },
+      { kind: 'doubleJump', x: 2520, y: 180, w: 24, h: 24 },
+      { kind: 'extraLife', x: 3860, y: 240, w: 24, h: 24 }
+    ],
+    goal: { x: 4350, y: 380, w: 200, h: 24, isGoal: true }
   }
 ];
 

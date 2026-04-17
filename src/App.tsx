@@ -1,13 +1,13 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { GAME_HEIGHT, GAME_WIDTH } from './game/constants';
+import { GAME_HEIGHT, GAME_WIDTH, SPEED_MULTIPLIERS } from './game/constants';
 import { createInitialState, loadLevel, render, renderHud, update } from './game/engine';
 import { audio } from './game/audio';
 import {
-  clearProgress, getControlMode, getHighScore, getUnlockedLevel,
-  setControlMode, setHighScore, setUnlockedLevel
+  clearProgress, getControlMode, getHighScore, getSpeedPreset, getUnlockedLevel,
+  setControlMode, setHighScore, setSpeedPreset, setUnlockedLevel
 } from './game/storage';
 import { levels } from './game/levels';
-import type { ControlMode, GameScreen, GameState, InputKeys } from './game/types';
+import type { ControlMode, GameScreen, GameState, InputKeys, SpeedPreset } from './game/types';
 import { MainMenu, ScreenOverlay, SettingsScreen } from './components/Menu';
 import { TouchControls, type TouchAction } from './components/TouchControls';
 
@@ -27,6 +27,11 @@ export default function App() {
   const [unlockedLevel, setUnlockedLevelState] = useState(getUnlockedLevel());
   const [muted, setMuted] = useState(audio.isMuted());
   const [controlMode, setControlModeState] = useState<ControlMode>(getControlMode());
+  const [speedPreset, setSpeedPresetState] = useState<SpeedPreset>(getSpeedPreset());
+
+  useEffect(() => {
+    stateRef.current.speedMultiplier = SPEED_MULTIPLIERS[speedPreset];
+  }, [speedPreset]);
 
   const syncScreen = () => {
     if (stateRef.current.screen !== screen) setScreen(stateRef.current.screen);
@@ -53,6 +58,7 @@ export default function App() {
 
   const startLevel = (id: number, keepLives: boolean) => {
     loadLevel(stateRef.current, id, keepLives);
+    stateRef.current.speedMultiplier = SPEED_MULTIPLIERS[speedPreset];
     setScore(0);
     setScreen('playing');
     force((n) => n + 1);
@@ -79,6 +85,11 @@ export default function App() {
   const changeControlMode = (mode: ControlMode) => {
     setControlMode(mode);
     setControlModeState(mode);
+  };
+
+  const changeSpeedPreset = (p: SpeedPreset) => {
+    setSpeedPreset(p);
+    setSpeedPresetState(p);
   };
 
   const handleClearProgress = () => {
@@ -270,8 +281,10 @@ export default function App() {
           {screen === 'settings' && (
             <SettingsScreen
               controlMode={controlMode}
+              speedPreset={speedPreset}
               muted={muted}
               onChangeControlMode={changeControlMode}
+              onChangeSpeedPreset={changeSpeedPreset}
               onToggleMute={toggleMute}
               onClearProgress={handleClearProgress}
               onBack={goToMenu}

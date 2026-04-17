@@ -56,5 +56,12 @@ export const PLAYER = {
 export const STORAGE_KEYS = {
   highScore: 'kittenJump.highScore',
   unlockedLevel: 'kittenJump.unlockedLevel',
-  controlMode: 'kittenJump.controlMode'
+  controlMode: 'kittenJump.controlMode',
+  speedPreset: 'kittenJump.speedPreset'
 } as const;
+
+export const SPEED_MULTIPLIERS: Record<'slow' | 'normal' | 'fast', number> = {
+  slow: 0.7,
+  normal: 1.0,
+  fast: 1.3
+};

@@ -30,8 +30,19 @@ export const createInitialState = (): GameState => ({
   particles: [],
   goal: null,
   cameraMaxX: GAME_WIDTH,
-  theme: 'day'
+  theme: 'day',
+  speedMultiplier: 1
 });
+
+let rooftopsImg: HTMLImageElement | null = null;
+let rooftopsImgLoaded = false;
+const ensureRooftopsImg = () => {
+  if (rooftopsImg) return rooftopsImg;
+  rooftopsImg = new Image();
+  rooftopsImg.onload = () => { rooftopsImgLoaded = true; };
+  rooftopsImg.src = '/bg-rooftops.jpg';
+  return rooftopsImg;
+};
 
 const createPlayer = (x: number, y: number): Player => ({
   x, y,
@@ -65,6 +76,7 @@ export const loadLevel = (state: GameState, levelId: number, keepLives: boolean)
   state.cameraX = 0;
   state.score = 0;
   state.frameCount = 0;
+  if (level.theme === 'rooftops') ensureRooftopsImg();
   state.platforms = level.platforms.map((p) => ({ ...p }));
   state.coins = level.coins.map((c) => ({ ...c, collected: false }));
   state.enemies = level.enemies.map((e) => ({
@@ -147,12 +159,13 @@ export const update = (state: GameState, keys: InputKeys, onScoreChange: () => v
   state.frameCount++;
   const player = state.player;
 
+  const speed = PHYSICS.playerSpeed * (state.speedMultiplier || 1);
   if (keys.ArrowLeft) {
-    player.vx = -PHYSICS.playerSpeed;
+    player.vx = -speed;
     player.facingRight = false;
     if (state.frameCount % 6 === 0) player.animFrame = (player.animFrame + 1) % 2;
   } else if (keys.ArrowRight) {
-    player.vx = PHYSICS.playerSpeed;
+    player.vx = speed;
     player.facingRight = true;
     if (state.frameCount % 6 === 0) player.animFrame = (player.animFrame + 1) % 2;
   } else {
@@ -324,6 +337,24 @@ export const update = (state: GameState, keys: InputKeys, onScoreChange: () => v
 
 const drawParallaxBackground = (ctx: CanvasRenderingContext2D, state: GameState) => {
   const theme = state.theme;
+  if (theme === 'rooftops') {
+    const img = ensureRooftopsImg();
+    if (rooftopsImgLoaded && img.naturalWidth > 0) {
+      const scale = GAME_HEIGHT / img.naturalHeight;
+      const drawW = img.naturalWidth * scale;
+      const offset = (state.cameraX * 0.35) % drawW;
+      for (let x = -offset; x < GAME_WIDTH; x += drawW) {
+        ctx.drawImage(img, x, 0, drawW, GAME_HEIGHT);
+      }
+    } else {
+      const grad = ctx.createLinearGradient(0, 0, 0, GAME_HEIGHT);
+      grad.addColorStop(0, '#1a1a3a');
+      grad.addColorStop(1, '#3a2a4a');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
+    }
+    return;
+  }
   if (theme === 'day') {
     const grad = ctx.createLinearGradient(0, 0, 0, GAME_HEIGHT);
     grad.addColorStop(0, '#FFB6C1');
@@ -395,9 +426,14 @@ export const render = (ctx: CanvasRenderingContext2D, state: GameState) => {
 
   for (const p of state.platforms) {
     const isHazard = p.isHazard;
-    ctx.fillStyle = isHazard ? COLORS.spike : (state.theme === 'night' ? COLORS.groundNight : (state.theme === 'desert' ? '#deb887' : COLORS.ground));
+    let topColor: string = COLORS.ground;
+    let bodyColor: string = COLORS.dirt;
+    if (state.theme === 'night') { topColor = COLORS.groundNight; bodyColor = COLORS.dirtNight; }
+    else if (state.theme === 'desert') { topColor = '#deb887'; bodyColor = '#a0522d'; }
+    else if (state.theme === 'rooftops') { topColor = '#5b4a6a'; bodyColor = '#2a1f3a'; }
+    ctx.fillStyle = isHazard ? COLORS.spike : topColor;
     ctx.fillRect(p.x, p.y, p.w, p.h);
-    ctx.fillStyle = state.theme === 'night' ? COLORS.dirtNight : (state.theme === 'desert' ? '#a0522d' : COLORS.dirt);
+    ctx.fillStyle = bodyColor;
     ctx.fillRect(p.x, p.y + 10, p.w, p.h - 10);
   }
 
