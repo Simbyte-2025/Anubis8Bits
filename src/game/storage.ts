@@ -1,5 +1,5 @@
 import { STORAGE_KEYS } from './constants';
-import type { ControlMode } from './types';
+import type { ControlMode, SpeedPreset } from './types';
 
 export const getHighScore = (): number => {
   try {
@@ -39,6 +39,20 @@ export const getControlMode = (): ControlMode => {
 
 export const setControlMode = (mode: ControlMode) => {
   try { localStorage.setItem(STORAGE_KEYS.controlMode, mode); } catch {}
+};
+
+const VALID_SPEED_PRESETS: SpeedPreset[] = ['slow', 'normal', 'fast'];
+
+export const getSpeedPreset = (): SpeedPreset => {
+  try {
+    const v = localStorage.getItem(STORAGE_KEYS.speedPreset);
+    if (v && (VALID_SPEED_PRESETS as string[]).includes(v)) return v as SpeedPreset;
+  } catch {}
+  return 'normal';
+};
+
+export const setSpeedPreset = (p: SpeedPreset) => {
+  try { localStorage.setItem(STORAGE_KEYS.speedPreset, p); } catch {}
 };
 
 export const clearProgress = () => {

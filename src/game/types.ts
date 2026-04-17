@@ -2,6 +2,10 @@ export type GameScreen = 'menu' | 'levelSelect' | 'playing' | 'paused' | 'won' |
 
 export type ControlMode = 'visible' | 'zones' | 'both';
 
+export type SpeedPreset = 'slow' | 'normal' | 'fast';
+
+export type LevelTheme = 'day' | 'night' | 'desert' | 'rooftops';
+
 export interface AABB {
   x: number;
   y: number;
@@ -75,7 +79,7 @@ export interface Player {
 export interface LevelData {
   id: number;
   name: string;
-  theme: 'day' | 'night' | 'desert';
+  theme: LevelTheme;
   cameraMaxX: number;
   player: { x: number; y: number };
   platforms: Platform[];
@@ -100,7 +104,8 @@ export interface GameState {
   particles: Particle[];
   goal: Platform | null;
   cameraMaxX: number;
-  theme: 'day' | 'night' | 'desert';
+  theme: LevelTheme;
+  speedMultiplier: number;
 }
 
 export interface InputKeys {
