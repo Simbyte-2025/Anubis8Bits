@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
 
-export type TouchAction = 'left' | 'right' | 'jump';
+export type TouchAction = 'left' | 'right' | 'jump' | 'crouch';
 
 interface Props {
   onPress: (action: TouchAction, pressed: boolean) => void;
@@ -49,6 +49,16 @@ export const TouchControls: React.FC<Props> = ({ onPress }) => {
           ▶
         </button>
       </div>
+      <button
+        aria-label="Sigilo"
+        onPointerDown={start('crouch')}
+        onPointerUp={end('crouch')}
+        onPointerCancel={end('crouch')}
+        onPointerLeave={end('crouch')}
+        className={`${baseBtn} absolute bottom-3 right-28 md:right-32 bg-[#7ec8ff]/90 w-14 h-14 md:w-16 md:h-16 text-xl md:text-2xl rounded-full`}
+      >
+        🤫
+      </button>
       <button
         aria-label="Saltar"
         onPointerDown={start('jump')}

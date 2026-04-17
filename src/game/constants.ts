@@ -37,8 +37,8 @@ export const PHYSICS = {
   playerSpeed: 8,
   airFriction: 0.92,
   groundFriction: 0.8,
-  coyoteTimeFrames: 6,
-  jumpBufferFrames: 7
+  coyoteTimeFrames: 9,
+  jumpBufferFrames: 10
 } as const;
 
 export const PLAYER = {

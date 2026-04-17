@@ -14,9 +14,9 @@ export default defineConfig(({mode}) => {
         registerType: 'autoUpdate',
         includeAssets: ['apple-touch-icon.png', 'icon-192.png', 'icon-512.png'],
         manifest: {
-          name: 'Kitten Jump 8-Bit',
-          short_name: 'Kitten Jump',
-          description: 'Mbarakaja oñembosarái — un platformer 8-bit con un gato siamés.',
+          name: 'Anubis Escape',
+          short_name: 'Anubis',
+          description: 'Las aventuras de Anubis, una gata siamesa que escapa por los tejados.',
           theme_color: '#FFB6C1',
           background_color: '#2c3e50',
           display: 'fullscreen',
