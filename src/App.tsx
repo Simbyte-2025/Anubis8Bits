@@ -16,7 +16,7 @@ export default function App() {
   const containerRef = useRef<HTMLDivElement>(null);
   const stateRef = useRef<GameState>(createInitialState());
   const keysRef = useRef<InputKeys>({
-    ArrowLeft: false, ArrowRight: false, ArrowUp: false, Space: false, KeyP: false
+    ArrowLeft: false, ArrowRight: false, ArrowUp: false, ArrowDown: false, Space: false, KeyP: false
   });
   const audioUnlockedRef = useRef(false);
 
@@ -101,10 +101,8 @@ export default function App() {
   const handleTouchAction = (action: TouchAction, pressed: boolean) => {
     if (action === 'left') keysRef.current.ArrowLeft = pressed;
     else if (action === 'right') keysRef.current.ArrowRight = pressed;
-    else if (action === 'jump') {
-      if (pressed) keysRef.current.ArrowUp = true;
-      else keysRef.current.ArrowUp = false;
-    }
+    else if (action === 'jump') keysRef.current.ArrowUp = pressed;
+    else if (action === 'crouch') keysRef.current.ArrowDown = pressed;
   };
 
   useEffect(() => {
@@ -129,7 +127,7 @@ export default function App() {
       if (e.code === 'KeyM') { e.preventDefault(); toggleMute(); return; }
       if ((keysRef.current as any).hasOwnProperty(e.code)) {
         (keysRef.current as any)[e.code] = true;
-        if (e.code === 'ArrowUp' || e.code === 'Space') e.preventDefault();
+        if (e.code === 'ArrowUp' || e.code === 'ArrowDown' || e.code === 'Space') e.preventDefault();
       }
     };
     const handleKeyUp = (e: KeyboardEvent) => {
@@ -232,7 +230,7 @@ export default function App() {
       <div className="rotate-overlay">
         <div style={{ fontSize: 36, marginBottom: 16 }}>🔄</div>
         <div>Gira el iPad</div>
-        <div style={{ marginTop: 8, opacity: 0.7 }}>Pyahu kotyo &mdash; landscape</div>
+        <div style={{ marginTop: 8, opacity: 0.7 }}>Modo horizontal</div>
       </div>
 
       <div className="game-shell flex justify-center items-center h-screen w-screen bg-[#2c3e50] overflow-hidden font-press-start touch-none p-2 md:p-4 min-h-0 min-w-0">
@@ -304,8 +302,8 @@ export default function App() {
 
           {screen === 'won' && (
             <ScreenOverlay
-              title="¡Opa!"
-              subtitle={`Kyta: ${score}${isLastLevel ? '' : `\nNivel ${currentLevelId + 1} desbloqueado`}`}
+              title="¡Lo lograste!"
+              subtitle={`Puntos: ${score}${isLastLevel ? '' : `\nNivel ${currentLevelId + 1} desbloqueado`}`}
               primaryLabel={isLastLevel ? '¡Completaste todo!' : 'Siguiente nivel'}
               onPrimary={() => isLastLevel ? goToMenu() : startLevel(currentLevelId + 1, true)}
               secondaryLabel="Menú principal"
@@ -315,9 +313,9 @@ export default function App() {
 
           {screen === 'lost' && (
             <ScreenOverlay
-              title="¡Mbarakaja omano!"
-              subtitle={`Re'a yvýpe.\nKyta final: ${score}`}
-              primaryLabel="Eha'ã jey"
+              title="¡Anubis cayó!"
+              subtitle={`Te caíste al vacío.\nPuntos finales: ${score}`}
+              primaryLabel="Intentar de nuevo"
               onPrimary={() => startLevel(currentLevelId, false)}
               secondaryLabel="Menú principal"
               onSecondary={goToMenu}
@@ -326,8 +324,8 @@ export default function App() {
 
           {screen === 'gameComplete' && (
             <ScreenOverlay
-              title="¡Mbarakaja ipoty!"
-              subtitle={`Completaste todos los niveles.\nKyta total: ${score}`}
+              title="¡Anubis lo logró!"
+              subtitle={`Completaste todos los niveles.\nPuntos totales: ${score}`}
               primaryLabel="Volver al menú"
               onPrimary={goToMenu}
             />

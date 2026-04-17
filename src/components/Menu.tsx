@@ -15,8 +15,8 @@ export const MainMenu: React.FC<MenuProps> = ({
   highScore, unlockedLevel, muted, onPlay, onToggleMute, onOpenSettings
 }) => (
   <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80 text-white p-4 md:p-6 pointer-events-auto overflow-auto">
-    <h1 className="text-[#FFB6C1] text-2xl md:text-4xl mb-2 text-center">Kitten Jump</h1>
-    <p className="text-[10px] md:text-sm mb-4 opacity-80">Mbarakaja oñembosarái</p>
+    <h1 className="text-[#FFB6C1] text-2xl md:text-4xl mb-2 text-center">Anubis Escape</h1>
+    <p className="text-[10px] md:text-sm mb-4 opacity-80">Las aventuras de una gata curiosa</p>
     <p className="text-[10px] md:text-xs mb-4">Hi-Score: {highScore}</p>
 
     <div className="flex flex-col gap-2 md:gap-3 w-full max-w-xs">
@@ -106,9 +106,9 @@ export const SettingsScreen: React.FC<SettingsProps> = ({
 
       <div className="w-full max-w-sm flex flex-col gap-2 md:gap-3">
         <p className="text-[10px] md:text-xs mb-1">Velocidad del personaje</p>
-        {speedOpt('slow', '🐢 Lenta', 'Más fácil — 70% velocidad')}
+        {speedOpt('slow', '🐢 Tranquilo', 'Más fácil — 70% velocidad')}
         {speedOpt('normal', '🐈 Normal', '100% velocidad')}
-        {speedOpt('fast', '⚡ Rápida', 'Más difícil — 130% velocidad')}
+        {speedOpt('fast', '⚡ Rápido', 'Más difícil — 130% velocidad')}
 
         <div className="h-2" />
 

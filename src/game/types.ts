@@ -4,7 +4,7 @@ export type ControlMode = 'visible' | 'zones' | 'both';
 
 export type SpeedPreset = 'slow' | 'normal' | 'fast';
 
-export type LevelTheme = 'day' | 'night' | 'desert' | 'rooftops';
+export type LevelTheme = 'day' | 'night' | 'desert' | 'rooftops' | 'sunset' | 'neighborhood' | 'indoors';
 
 export interface AABB {
   x: number;
@@ -18,11 +18,14 @@ export interface Platform extends AABB {
   isHazard?: boolean;
 }
 
+export type CoinKind = 'tuna' | 'mouse';
+
 export interface Coin extends AABB {
   collected: boolean;
+  kind?: CoinKind;
 }
 
-export type EnemyKind = 'bat' | 'beetle';
+export type EnemyKind = 'bat' | 'beetle' | 'streetCat' | 'dog' | 'rocco';
 
 export interface Enemy extends AABB {
   kind: EnemyKind;
@@ -33,9 +36,13 @@ export interface Enemy extends AABB {
   baseY: number;
   alive: boolean;
   animFrame: number;
+  // Rocco-only state
+  alertHitbox?: { dx: number; dy: number; w: number; h: number };
+  alertTimer?: number; // frames the player has been in alert zone
+  awakeTimer?: number; // frames remaining awake after waking
 }
 
-export type PowerUpKind = 'doubleJump' | 'shield' | 'extraLife';
+export type PowerUpKind = 'doubleJump' | 'shield' | 'extraLife' | 'cardboardBox';
 
 export interface PowerUp extends AABB {
   kind: PowerUpKind;
@@ -72,6 +79,9 @@ export interface Player {
   doubleJumpUsed: boolean;
   hasShield: boolean;
   shieldFrames: number;
+  inBox: boolean;
+  boxFrames: number;
+  isCrouching: boolean;
   spawnX: number;
   spawnY: number;
 }
@@ -112,6 +122,7 @@ export interface InputKeys {
   ArrowLeft: boolean;
   ArrowRight: boolean;
   ArrowUp: boolean;
+  ArrowDown: boolean;
   Space: boolean;
   KeyP: boolean;
 }

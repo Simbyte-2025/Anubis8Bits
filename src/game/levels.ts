@@ -6,8 +6,8 @@ const groundH = 100;
 export const levels: LevelData[] = [
   {
     id: 1,
-    name: 'Yvága rape',
-    theme: 'day',
+    name: 'La Fuga',
+    theme: 'sunset',
     cameraMaxX: 3200,
     player: { x: 50, y: groundY - 52 },
     platforms: [
@@ -25,7 +25,7 @@ export const levels: LevelData[] = [
     coins: [
       { x: 660, y: 380, w: 20, h: 20 },
       { x: 870, y: 320, w: 20, h: 20 },
-      { x: 1080, y: 260, w: 20, h: 20 },
+      { x: 1080, y: 260, w: 20, h: 20, kind: 'mouse' },
       { x: 1320, y: 340, w: 20, h: 20 },
       { x: 1560, y: 400, w: 20, h: 20 },
       { x: 1900, y: 460, w: 20, h: 20 },
@@ -45,8 +45,8 @@ export const levels: LevelData[] = [
   },
   {
     id: 2,
-    name: 'Pyhare guasu',
-    theme: 'night',
+    name: 'El Vecindario',
+    theme: 'neighborhood',
     cameraMaxX: 4000,
     player: { x: 50, y: groundY - 52 },
     platforms: [
@@ -71,7 +71,7 @@ export const levels: LevelData[] = [
       { x: 460, y: 420, w: 20, h: 20 },
       { x: 640, y: 360, w: 20, h: 20 },
       { x: 820, y: 300, w: 20, h: 20 },
-      { x: 1010, y: 240, w: 20, h: 20 },
+      { x: 1010, y: 240, w: 20, h: 20, kind: 'mouse' },
       { x: 1220, y: 300, w: 20, h: 20 },
       { x: 1420, y: 360, w: 20, h: 20 },
       { x: 1700, y: 460, w: 20, h: 20 },
@@ -80,7 +80,7 @@ export const levels: LevelData[] = [
       { x: 2200, y: 400, w: 20, h: 20 },
       { x: 2340, y: 320, w: 20, h: 20 },
       { x: 2480, y: 240, w: 20, h: 20 },
-      { x: 2620, y: 160, w: 20, h: 20 },
+      { x: 2620, y: 160, w: 20, h: 20, kind: 'mouse' },
       { x: 2820, y: 240, w: 20, h: 20 },
       { x: 2960, y: 320, w: 20, h: 20 },
       { x: 3100, y: 400, w: 20, h: 20 }
@@ -88,9 +88,9 @@ export const levels: LevelData[] = [
     enemies: [
       { kind: 'bat', x: 700, y: 220, w: 36, h: 28, patrolMin: 600, patrolMax: 1100 },
       { kind: 'bat', x: 1300, y: 180, w: 36, h: 28, patrolMin: 1200, patrolMax: 1500 },
-      { kind: 'beetle', x: 1700, y: groundY - 32, w: 36, h: 32, patrolMin: 1620, patrolMax: 2050 },
+      { kind: 'streetCat', x: 1700, y: groundY - 30, w: 45, h: 30, patrolMin: 1620, patrolMax: 2050 },
       { kind: 'bat', x: 2600, y: 120, w: 36, h: 28, patrolMin: 2500, patrolMax: 2800 },
-      { kind: 'beetle', x: 3400, y: groundY - 32, w: 36, h: 32, patrolMin: 3300, patrolMax: 3850 }
+      { kind: 'dog', x: 3400, y: groundY - 39, w: 60, h: 39, patrolMin: 3300, patrolMax: 3850 }
     ],
     powerUps: [
       { kind: 'shield', x: 1610, y: groundY - 40, w: 24, h: 24 },
@@ -100,7 +100,7 @@ export const levels: LevelData[] = [
   },
   {
     id: 3,
-    name: 'Yvy aku',
+    name: 'Los Callejones',
     theme: 'desert',
     cameraMaxX: 5000,
     player: { x: 50, y: groundY - 52 },
@@ -136,13 +136,13 @@ export const levels: LevelData[] = [
       { x: 550, y: 380, w: 20, h: 20 },
       { x: 690, y: 320, w: 20, h: 20 },
       { x: 830, y: 260, w: 20, h: 20 },
-      { x: 980, y: 200, w: 20, h: 20 },
+      { x: 980, y: 200, w: 20, h: 20, kind: 'mouse' },
       { x: 1130, y: 260, w: 20, h: 20 },
       { x: 1270, y: 340, w: 20, h: 20 },
       { x: 1730, y: 420, w: 20, h: 20 },
       { x: 1870, y: 340, w: 20, h: 20 },
       { x: 2010, y: 260, w: 20, h: 20 },
-      { x: 2160, y: 180, w: 20, h: 20 },
+      { x: 2160, y: 180, w: 20, h: 20, kind: 'mouse' },
       { x: 2310, y: 260, w: 20, h: 20 },
       { x: 2450, y: 340, w: 20, h: 20 },
       { x: 2590, y: 420, w: 20, h: 20 },
@@ -150,19 +150,19 @@ export const levels: LevelData[] = [
       { x: 3130, y: 400, w: 20, h: 20 },
       { x: 3270, y: 320, w: 20, h: 20 },
       { x: 3410, y: 240, w: 20, h: 20 },
-      { x: 3560, y: 160, w: 20, h: 20 },
+      { x: 3560, y: 160, w: 20, h: 20, kind: 'mouse' },
       { x: 3710, y: 240, w: 20, h: 20 },
       { x: 3850, y: 320, w: 20, h: 20 },
       { x: 3990, y: 400, w: 20, h: 20 }
     ],
     enemies: [
-      { kind: 'beetle', x: 1450, y: groundY - 32, w: 36, h: 32, patrolMin: 1380, patrolMax: 1600 },
+      { kind: 'streetCat', x: 1450, y: groundY - 30, w: 45, h: 30, patrolMin: 1380, patrolMax: 1600 },
       { kind: 'bat', x: 1000, y: 160, w: 36, h: 28, patrolMin: 850, patrolMax: 1200 },
       { kind: 'bat', x: 2150, y: 140, w: 36, h: 28, patrolMin: 2000, patrolMax: 2350 },
-      { kind: 'beetle', x: 2780, y: groundY - 32, w: 36, h: 32, patrolMin: 2700, patrolMax: 2980 },
+      { kind: 'dog', x: 2780, y: groundY - 39, w: 60, h: 39, patrolMin: 2700, patrolMax: 2980 },
       { kind: 'bat', x: 3550, y: 120, w: 36, h: 28, patrolMin: 3400, patrolMax: 3700 },
-      { kind: 'bat', x: 4400, y: 200, w: 36, h: 28, patrolMin: 4200, patrolMax: 4700 },
-      { kind: 'beetle', x: 4250, y: groundY - 32, w: 36, h: 32, patrolMin: 4100, patrolMax: 4600 }
+      { kind: 'streetCat', x: 4400, y: 161, w: 45, h: 30, patrolMin: 4200, patrolMax: 4700 },
+      { kind: 'dog', x: 4250, y: groundY - 39, w: 60, h: 39, patrolMin: 4100, patrolMax: 4600 }
     ],
     powerUps: [
       { kind: 'doubleJump', x: 940, y: 200, w: 24, h: 24 },
@@ -173,7 +173,7 @@ export const levels: LevelData[] = [
   },
   {
     id: 4,
-    name: 'Tejado pyhare',
+    name: 'Los Tejados',
     theme: 'rooftops',
     cameraMaxX: 4600,
     player: { x: 50, y: groundY - 52 },
@@ -204,7 +204,7 @@ export const levels: LevelData[] = [
       { x: 440, y: 420, w: 20, h: 20 },
       { x: 660, y: 380, w: 20, h: 20 },
       { x: 860, y: 320, w: 20, h: 20 },
-      { x: 1070, y: 260, w: 20, h: 20 },
+      { x: 1070, y: 260, w: 20, h: 20, kind: 'mouse' },
       { x: 1280, y: 320, w: 20, h: 20 },
       { x: 1480, y: 380, w: 20, h: 20 },
       { x: 1750, y: 460, w: 20, h: 20 },
@@ -212,7 +212,7 @@ export const levels: LevelData[] = [
       { x: 2110, y: 420, w: 20, h: 20 },
       { x: 2250, y: 340, w: 20, h: 20 },
       { x: 2400, y: 260, w: 20, h: 20 },
-      { x: 2560, y: 180, w: 20, h: 20 },
+      { x: 2560, y: 180, w: 20, h: 20, kind: 'mouse' },
       { x: 2710, y: 260, w: 20, h: 20 },
       { x: 2850, y: 340, w: 20, h: 20 },
       { x: 2990, y: 420, w: 20, h: 20 },
@@ -225,10 +225,10 @@ export const levels: LevelData[] = [
     ],
     enemies: [
       { kind: 'bat', x: 900, y: 200, w: 36, h: 28, patrolMin: 800, patrolMax: 1300 },
-      { kind: 'beetle', x: 1700, y: groundY - 32, w: 36, h: 32, patrolMin: 1640, patrolMax: 1990 },
+      { kind: 'streetCat', x: 1700, y: groundY - 30, w: 45, h: 30, patrolMin: 1640, patrolMax: 1990 },
       { kind: 'bat', x: 2550, y: 120, w: 36, h: 28, patrolMin: 2400, patrolMax: 2750 },
-      { kind: 'beetle', x: 3200, y: groundY - 32, w: 36, h: 32, patrolMin: 3100, patrolMax: 3450 },
-      { kind: 'bat', x: 3900, y: 180, w: 36, h: 28, patrolMin: 3700, patrolMax: 4150 }
+      { kind: 'dog', x: 3200, y: groundY - 39, w: 60, h: 39, patrolMin: 3100, patrolMax: 3450 },
+      { kind: 'streetCat', x: 3900, y: 250, w: 45, h: 30, patrolMin: 3700, patrolMax: 4150 }
     ],
     powerUps: [
       { kind: 'shield', x: 1020, y: 260, w: 24, h: 24 },
@@ -236,6 +236,50 @@ export const levels: LevelData[] = [
       { kind: 'extraLife', x: 3860, y: 240, w: 24, h: 24 }
     ],
     goal: { x: 4350, y: 380, w: 200, h: 24, isGoal: true }
+  },
+  {
+    id: 5,
+    name: 'El cuarto de Rocco',
+    theme: 'indoors',
+    cameraMaxX: 3000,
+    player: { x: 50, y: groundY - 52 },
+    platforms: [
+      { x: 0, y: groundY, w: 400, h: groundH },                  // entrada
+      { x: 480, y: 460, w: 120, h: 24 },                          // sofá
+      { x: 660, y: 400, w: 120, h: 24 },                          // estantería
+      { x: 840, y: 340, w: 100, h: 24 },                          // libro
+      { x: 1000, y: 400, w: 120, h: 24 },                          // cuadro
+      { x: 1180, y: 460, w: 200, h: 24 },                          // mesa
+      { x: 1450, y: groundY, w: 800, h: groundH },                // alfombra (suelo)
+      { x: 2350, y: 460, w: 100, h: 24 },                          // banqueta
+      { x: 2500, y: 400, w: 100, h: 24 },                          // estante alto
+      { x: 2650, y: 340, w: 350, h: 24 }                           // cama (meta detrás de Rocco)
+    ],
+    coins: [
+      { x: 520, y: 420, w: 20, h: 20, kind: 'tuna' },
+      { x: 700, y: 360, w: 20, h: 20, kind: 'tuna' },
+      { x: 880, y: 300, w: 20, h: 20, kind: 'mouse' },
+      { x: 1040, y: 360, w: 20, h: 20, kind: 'tuna' },
+      { x: 1240, y: 420, w: 20, h: 20, kind: 'tuna' },
+      { x: 1500, y: 460, w: 20, h: 20, kind: 'tuna' },
+      { x: 1700, y: 460, w: 20, h: 20, kind: 'tuna' },
+      { x: 1900, y: 460, w: 20, h: 20, kind: 'tuna' },
+      { x: 2100, y: 460, w: 20, h: 20, kind: 'tuna' },
+      { x: 2380, y: 420, w: 20, h: 20, kind: 'tuna' },
+      { x: 2530, y: 360, w: 20, h: 20, kind: 'mouse' }
+    ],
+    enemies: [
+      { kind: 'streetCat', x: 1500, y: groundY - 30, w: 45, h: 30, patrolMin: 1450, patrolMax: 1900 },
+      { kind: 'dog', x: 2000, y: groundY - 39, w: 60, h: 39, patrolMin: 1950, patrolMax: 2250 },
+      // Rocco — durmiendo justo antes de la meta. Sigilo o lo despiertas.
+      { kind: 'rocco', x: 2780, y: 270, w: 72, h: 30, patrolMin: 0, patrolMax: 0 }
+    ],
+    powerUps: [
+      { kind: 'cardboardBox', x: 1180, y: 420, w: 24, h: 24 },
+      { kind: 'doubleJump', x: 660, y: 360, w: 24, h: 24 },
+      { kind: 'extraLife', x: 2500, y: 360, w: 24, h: 24 }
+    ],
+    goal: { x: 2900, y: 280, w: 100, h: 24, isGoal: true }
   }
 ];
 
