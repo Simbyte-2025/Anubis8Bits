@@ -4,3 +4,47 @@
 @theme {
   --font-press-start: "Press Start 2P", monospace;
 }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overscroll-behavior: none;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  background: #2c3e50;
+}
+
+#root {
+  width: 100%;
+  height: 100%;
+}
+
+.rotate-overlay {
+  display: none;
+}
+
+@media (orientation: portrait) and (max-width: 1024px) {
+  .rotate-overlay {
+    display: flex;
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: #2c3e50;
+    color: #fff;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    text-align: center;
+    padding: 24px;
+    font-family: var(--font-press-start);
+    font-size: 12px;
+    line-height: 1.6;
+  }
+  .game-shell {
+    visibility: hidden;
+  }
+}

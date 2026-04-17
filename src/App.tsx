@@ -1,155 +1,99 @@
-/**
- * @license
- * SPDX-License-Identifier: Apache-2.0
- */
-
 import React, { useEffect, useRef, useState } from 'react';
-
-// --- DATOS DE SPRITES PROCEDIMENTALES ---
-const catSpriteRun1 = [
-    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,0],
-    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0],
-    [0,0,0,0,0,0,0,0,0,2,2,2,2,2,2,2,3,1,0,0],
-    [0,1,1,1,1,1,0,0,2,2,2,2,2,2,2,2,2,1,0,0],
-    [0,0,0,0,0,1,1,2,2,2,2,2,2,2,2,2,2,0,0,0],
-    [0,0,0,0,0,0,1,2,2,2,2,2,2,2,2,1,1,0,0,0],
-    [0,0,0,0,0,0,1,2,2,0,0,1,1,0,1,1,0,0,0,0],
-    [0,0,0,0,0,1,1,0,0,0,1,1,0,0,0,1,1,0,0,0],
-    [0,0,0,0,1,1,0,0,0,1,1,0,0,0,0,1,1,0,0,0],
-    [0,0,0,4,4,0,0,0,0,4,4,0,0,0,0,0,4,4,0,0],
-    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4,4,0],
-    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
-];
-
-const catSpriteRun2 = [
-    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,0],
-    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0],
-    [0,0,0,0,0,0,0,0,0,2,2,2,2,2,2,2,3,1,0,0],
-    [0,0,1,1,1,1,0,0,2,2,2,2,2,2,2,2,2,1,0,0],
-    [0,1,1,0,0,1,1,2,2,2,2,2,2,2,2,2,2,0,0,0],
-    [0,0,0,0,0,0,1,2,2,2,2,2,2,2,2,1,1,0,0,0],
-    [0,0,0,0,0,0,0,2,2,0,0,2,2,0,1,1,0,0,0,0],
-    [0,0,0,0,0,0,0,1,1,0,0,1,1,0,1,1,0,0,0,0],
-    [0,0,0,0,0,0,1,1,0,0,1,1,0,0,4,4,0,0,0,0],
-    [0,0,0,0,0,0,4,4,0,0,4,4,0,0,0,0,0,0,0,0],
-    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
-];
-
-const catSpriteSit = [
-    [0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,0,0,0,0,0],
-    [0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0],
-    [0,0,0,0,0,0,0,0,0,0,2,2,2,3,1,0,0,0,0,0],
-    [0,0,0,0,0,0,0,0,0,2,2,2,2,2,1,0,0,0,0,0],
-    [0,0,0,0,0,0,0,0,2,2,2,2,2,0,0,0,0,0,0,0],
-    [0,0,0,0,0,0,0,2,2,2,2,2,2,1,0,0,0,0,0,0],
-    [0,0,0,0,0,0,2,2,2,2,2,2,2,1,1,0,0,0,0,0],
-    [0,0,0,0,0,0,2,2,2,2,2,2,2,1,1,0,0,0,0,0],
-    [0,0,1,1,1,0,2,2,2,2,2,2,2,1,1,0,0,0,0,0],
-    [0,1,1,0,1,1,1,2,2,2,2,2,1,1,0,0,0,0,0,0],
-    [0,1,1,0,0,1,1,1,1,1,1,4,4,4,4,0,0,0,0,0],
-    [0,0,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0],
-    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
-];
-
-const COLORS = {
-    sky: '#FFB6C1', // Rosa pastel
-    ground: '#98FB98', // Verde menta
-    dirt: '#CD853F', // Marrón
-    catBase: '#F5F5DC', // Beige claro (cuerpo)
-    catPoints: '#4B3621', // Marrón oscuro (puntos)
-    catEye: '#87CEEB', // Azul claro (ojos)
-    catSocks: '#FFFFFF', // Blanco para las patas
-    coin: '#FFD700'
-};
-
-const paletteMap: Record<number, string> = {
-    1: COLORS.catPoints,
-    2: COLORS.catBase,
-    3: COLORS.catEye,
-    4: COLORS.catSocks
-};
+import { GAME_HEIGHT, GAME_WIDTH } from './game/constants';
+import { createInitialState, loadLevel, render, renderHud, update } from './game/engine';
+import { audio } from './game/audio';
+import {
+  clearProgress, getControlMode, getHighScore, getUnlockedLevel,
+  setControlMode, setHighScore, setUnlockedLevel
+} from './game/storage';
+import { levels } from './game/levels';
+import type { ControlMode, GameScreen, GameState, InputKeys } from './game/types';
+import { MainMenu, ScreenOverlay, SettingsScreen } from './components/Menu';
+import { TouchControls, type TouchAction } from './components/TouchControls';
 
 export default function App() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  
+  const stateRef = useRef<GameState>(createInitialState());
+  const keysRef = useRef<InputKeys>({
+    ArrowLeft: false, ArrowRight: false, ArrowUp: false, Space: false, KeyP: false
+  });
+  const audioUnlockedRef = useRef(false);
+
+  const [, force] = useState(0);
+  const [screen, setScreen] = useState<GameScreen>('menu');
   const [score, setScore] = useState(0);
-  const [gameState, setGameState] = useState<'playing' | 'won' | 'lost'>('playing');
+  const [highScore, setHighScoreState] = useState(getHighScore());
+  const [unlockedLevel, setUnlockedLevelState] = useState(getUnlockedLevel());
+  const [muted, setMuted] = useState(audio.isMuted());
+  const [controlMode, setControlModeState] = useState<ControlMode>(getControlMode());
 
-  // Use refs for inputs so we don't need to re-bind event listeners
-  const keysRef = useRef({
-    ArrowLeft: false,
-    ArrowRight: false,
-    ArrowUp: false,
-    Space: false
-  });
+  const syncScreen = () => {
+    if (stateRef.current.screen !== screen) setScreen(stateRef.current.screen);
+  };
 
-  // Game state refs to avoid dependency issues in the game loop
-  const gameStateRef = useRef({
-    cameraX: 0,
-    score: 0,
-    isGameOver: false,
-    frameCount: 0,
-    player: {
-        x: 50,
-        y: 100,
-        width: 80,
-        height: 52,
-        vx: 0,
-        vy: 0,
-        speed: 8,
-        jumpPower: -16,
-        gravity: 0.5,
-        isGrounded: false,
-        facingRight: true,
-        scale: 4,
-        animFrame: 0
-    },
-    platforms: [] as any[],
-    coins: [] as any[]
-  });
+  const handleScoreChange = () => setScore(stateRef.current.score);
 
-  // Expose a reset function
-  const resetGame = () => {
-    const state = gameStateRef.current;
-    
-    // Re-init level
-    state.platforms = [];
-    state.coins = [];
-    
-    state.platforms.push({ x: 0, y: 500, w: 400, h: 100 });
-    
-    let currentX = 450;
-    for(let i=0; i<30; i++) {
-        let w = Math.random() * 150 + 100;
-        let h = 30;
-        let y = 300 + Math.random() * 150;
-        
-        state.platforms.push({ x: currentX, y: y, w: w, h: h });
-
-        if (Math.random() > 0.3) {
-            state.coins.push({ x: currentX + w/2 - 10, y: y - 40, w: 20, h: 20, collected: false });
-        }
-
-        currentX += w + (Math.random() * 100 + 50);
+  const handleWin = () => {
+    const finished = stateRef.current.currentLevelId;
+    const next = finished + 1;
+    const totalForRun = stateRef.current.score + 50 * stateRef.current.player.lives;
+    if (totalForRun > getHighScore()) {
+      setHighScore(totalForRun);
+      setHighScoreState(totalForRun);
     }
-    
-    state.platforms.push({ x: currentX, y: 400, w: 300, h: 200, isGoal: true });
+    if (next <= levels.length && next > getUnlockedLevel()) {
+      setUnlockedLevel(next);
+      setUnlockedLevelState(next);
+    }
+    if (next > levels.length) {
+      stateRef.current.screen = 'gameComplete';
+    }
+  };
 
-    state.player.x = 50;
-    state.player.y = 500 - state.player.height;
-    state.player.vx = 0;
-    state.player.vy = 0;
-    state.player.isGrounded = true;
-    state.score = 0;
-    state.cameraX = 0;
-    state.isGameOver = false;
-    
+  const startLevel = (id: number, keepLives: boolean) => {
+    loadLevel(stateRef.current, id, keepLives);
     setScore(0);
-    setGameState('playing');
+    setScreen('playing');
+    force((n) => n + 1);
+  };
+
+  const goToMenu = () => {
+    stateRef.current.screen = 'menu';
+    setScreen('menu');
+  };
+
+  const openSettings = () => {
+    stateRef.current.screen = 'settings';
+    setScreen('settings');
+  };
+
+  const togglePause = () => {
+    const s = stateRef.current;
+    if (s.screen === 'playing') { s.screen = 'paused'; setScreen('paused'); }
+    else if (s.screen === 'paused') { s.screen = 'playing'; setScreen('playing'); }
+  };
+
+  const toggleMute = () => setMuted(audio.toggleMute());
+
+  const changeControlMode = (mode: ControlMode) => {
+    setControlMode(mode);
+    setControlModeState(mode);
+  };
+
+  const handleClearProgress = () => {
+    clearProgress();
+    setHighScoreState(0);
+    setUnlockedLevelState(1);
+  };
+
+  const handleTouchAction = (action: TouchAction, pressed: boolean) => {
+    if (action === 'left') keysRef.current.ArrowLeft = pressed;
+    else if (action === 'right') keysRef.current.ArrowRight = pressed;
+    else if (action === 'jump') {
+      if (pressed) keysRef.current.ArrowUp = true;
+      else keysRef.current.ArrowUp = false;
+    }
   };
 
   useEffect(() => {
@@ -157,336 +101,226 @@ export default function App() {
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
+    let raf = 0;
 
-    let animationFrameId: number;
-
-    resetGame();
-
-    const GAME_WIDTH = 800;
-    const GAME_HEIGHT = 600;
-
-    const update = () => {
-        const state = gameStateRef.current;
-        const keys = keysRef.current;
-        const player = state.player;
-
-        if (state.isGameOver) return;
-        state.frameCount++;
-
-        if (keys.ArrowLeft) {
-            player.vx = -player.speed;
-            player.facingRight = false;
-            if (state.frameCount % 6 === 0) player.animFrame = (player.animFrame + 1) % 2;
-        } else if (keys.ArrowRight) {
-            player.vx = player.speed;
-            player.facingRight = true;
-            if (state.frameCount % 6 === 0) player.animFrame = (player.animFrame + 1) % 2;
-        } else {
-            player.vx *= 0.8;
-            player.animFrame = 0;
-        }
-
-        if ((keys.ArrowUp || keys.Space) && player.isGrounded) {
-            player.vy = player.jumpPower;
-            player.isGrounded = false;
-            keys.ArrowUp = false;
-            keys.Space = false;
-        }
-
-        player.vy += player.gravity;
-        if (player.vy > 15) player.vy = 15;
-
-        let nextX = player.x + player.vx;
-        let nextY = player.y + player.vy;
-
-        player.isGrounded = false;
-
-        for (let p of state.platforms) {
-            if (nextX < p.x + p.w && nextX + player.width > p.x &&
-                nextY < p.y + p.h && nextY + player.height > p.y) {
-                
-                if (player.vy > 0 && player.y + player.height <= p.y) {
-                    player.y = p.y - player.height;
-                    player.vy = 0;
-                    player.isGrounded = true;
-                    nextY = player.y;
-                    
-                    if (p.isGoal) {
-                        state.isGameOver = true;
-                        setGameState('won');
-                    }
-                }
-                else if (player.vy < 0 && player.y >= p.y + p.h) {
-                    player.y = p.y + p.h;
-                    player.vy = 0;
-                    nextY = player.y;
-                }
-                else if (player.vx > 0 && player.x + player.width <= p.x) {
-                    player.x = p.x - player.width;
-                    player.vx = 0;
-                    nextX = player.x;
-                }
-                else if (player.vx < 0 && player.x >= p.x + p.w) {
-                    player.x = p.x + p.w;
-                    player.vx = 0;
-                    nextX = player.x;
-                }
-            }
-        }
-
-        player.x = nextX;
-        player.y = nextY;
-
-        let scoreChanged = false;
-        for (let c of state.coins) {
-            if (!c.collected &&
-                player.x < c.x + c.w && player.x + player.width > c.x &&
-                player.y < c.y + c.h && player.y + player.height > c.y) {
-                c.collected = true;
-                state.score += 10;
-                scoreChanged = true;
-            }
-        }
-        if (scoreChanged) {
-            setScore(state.score);
-        }
-
-        const cameraMargin = 300;
-        if (player.x > state.cameraX + GAME_WIDTH - cameraMargin) {
-            state.cameraX = player.x - GAME_WIDTH + cameraMargin;
-        } else if (player.x < state.cameraX + cameraMargin && state.cameraX > 0) {
-            state.cameraX = player.x - cameraMargin;
-        }
-        if (state.cameraX < 0) state.cameraX = 0;
-
-        if (player.y > GAME_HEIGHT + 100) {
-            state.isGameOver = true;
-            setGameState('lost');
-        }
+    const loop = () => {
+      const s = stateRef.current;
+      update(s, keysRef.current, handleScoreChange, handleWin);
+      render(ctx, s);
+      renderHud(ctx, s, highScore);
+      syncScreen();
+      raf = requestAnimationFrame(loop);
     };
-
-    const drawSprite = (matrix: number[][], posX: number, posY: number, scale: number, flipH: boolean) => {
-        ctx.save();
-        ctx.translate(posX, posY);
-        if (flipH) {
-            ctx.scale(-1, 1);
-            ctx.translate(-matrix[0].length * scale, 0);
-        }
-
-        for (let r = 0; r < matrix.length; r++) {
-            for (let c = 0; c < matrix[r].length; c++) {
-                const colorCode = matrix[r][c];
-                if (colorCode !== 0) {
-                    ctx.fillStyle = paletteMap[colorCode];
-                    ctx.fillRect(c * scale, r * scale, scale, scale);
-                }
-            }
-        }
-        ctx.restore();
-    };
-
-    const draw = () => {
-        const state = gameStateRef.current;
-        const player = state.player;
-
-        ctx.fillStyle = COLORS.sky;
-        ctx.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
-
-        ctx.save();
-        ctx.translate(-state.cameraX, 0);
-
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
-        for(let i=0; i<10; i++) {
-            ctx.fillRect((i * 400) + (state.cameraX * 0.5) % 400, 100, 80, 40);
-            ctx.fillRect((i * 400) + 40 + (state.cameraX * 0.5) % 400, 80, 60, 60);
-        }
-
-        for (let p of state.platforms) {
-            ctx.fillStyle = p.isGoal ? '#FF69B4' : COLORS.ground;
-            ctx.fillRect(p.x, p.y, p.w, p.h);
-            
-            ctx.fillStyle = p.isGoal ? '#C71585' : COLORS.dirt;
-            ctx.fillRect(p.x, p.y + 10, p.w, p.h - 10);
-            
-            if (p.isGoal) {
-                ctx.fillStyle = '#FFF';
-                ctx.font = "20px 'Press Start 2P'";
-                ctx.fillText("OPA", p.x + p.w/2 - 40, p.y - 20);
-            }
-        }
-
-        for (let c of state.coins) {
-            if (!c.collected) {
-                ctx.fillStyle = COLORS.coin;
-                const floatY = c.y + Math.sin(state.frameCount * 0.1) * 5;
-                ctx.fillRect(c.x, floatY, c.w, c.h);
-                ctx.fillStyle = '#FFF';
-                ctx.fillRect(c.x + 4, floatY + 4, c.w/3, c.h/3);
-            }
-        }
-
-        let currentSprite;
-        if (player.vx === 0 && player.isGrounded) {
-            currentSprite = catSpriteSit;
-        } else {
-            currentSprite = player.animFrame === 0 ? catSpriteRun1 : catSpriteRun2;
-        }
-        
-        drawSprite(currentSprite, player.x, player.y, player.scale, !player.facingRight);
-
-        ctx.restore();
-    };
-
-    const gameLoop = () => {
-        update();
-        draw();
-        animationFrameId = requestAnimationFrame(gameLoop);
-    };
-
-    gameLoop();
+    loop();
 
     const handleKeyDown = (e: KeyboardEvent) => {
-        if (keysRef.current.hasOwnProperty(e.code)) {
-            (keysRef.current as any)[e.code] = true;
-        }
+      if (e.code === 'KeyP') { e.preventDefault(); togglePause(); return; }
+      if (e.code === 'KeyM') { e.preventDefault(); toggleMute(); return; }
+      if ((keysRef.current as any).hasOwnProperty(e.code)) {
+        (keysRef.current as any)[e.code] = true;
+        if (e.code === 'ArrowUp' || e.code === 'Space') e.preventDefault();
+      }
     };
     const handleKeyUp = (e: KeyboardEvent) => {
-        if (keysRef.current.hasOwnProperty(e.code)) {
-            (keysRef.current as any)[e.code] = false;
-        }
+      if ((keysRef.current as any).hasOwnProperty(e.code)) {
+        (keysRef.current as any)[e.code] = false;
+      }
     };
-
     window.addEventListener('keydown', handleKeyDown);
     window.addEventListener('keyup', handleKeyUp);
 
-    return () => {
-        cancelAnimationFrame(animationFrameId);
-        window.removeEventListener('keydown', handleKeyDown);
-        window.removeEventListener('keyup', handleKeyUp);
+    const unlockAudio = () => {
+      if (audioUnlockedRef.current) return;
+      audioUnlockedRef.current = true;
+      // Touch a no-op SFX to force AudioContext creation/resume on iOS.
+      const wasMuted = audio.isMuted();
+      if (!wasMuted) audio.play('land');
     };
-  }, []);
+    window.addEventListener('pointerdown', unlockAudio, { once: true });
+    window.addEventListener('keydown', unlockAudio, { once: true });
 
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+      window.removeEventListener('pointerdown', unlockAudio);
+      window.removeEventListener('keydown', unlockAudio);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [highScore]);
+
+  // --- Invisible touch zones (only when controlMode is 'zones' or 'both') ---
   const touchStateRef = useRef({
-      moveTouchId: null as number | null,
-      jumpTouchId: null as number | null,
-      startX: 0,
-      touches: new Set<number>()
+    moveTouchId: null as number | null,
+    jumpTouchId: null as number | null,
+    startX: 0
   });
 
-  const handleTouchStart = (e: React.TouchEvent) => {
-      const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-      for (let i = 0; i < e.changedTouches.length; i++) {
-          const touch = e.changedTouches[i];
-          touchStateRef.current.touches.add(touch.identifier);
-          
-          const isLeftHalf = (touch.clientX - rect.left) < rect.width / 2;
+  const zonesEnabled = controlMode === 'zones' || controlMode === 'both';
 
-          if (isLeftHalf) {
-              if (touchStateRef.current.moveTouchId === null) {
-                  touchStateRef.current.moveTouchId = touch.identifier;
-                  touchStateRef.current.startX = touch.clientX;
-              }
-          } else {
-              keysRef.current.ArrowUp = true;
-              touchStateRef.current.jumpTouchId = touch.identifier;
-          }
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (!zonesEnabled) return;
+    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    for (let i = 0; i < e.changedTouches.length; i++) {
+      const t = e.changedTouches[i];
+      const isLeft = (t.clientX - rect.left) < rect.width / 2;
+      if (isLeft) {
+        if (touchStateRef.current.moveTouchId === null) {
+          touchStateRef.current.moveTouchId = t.identifier;
+          touchStateRef.current.startX = t.clientX;
+        }
+      } else {
+        keysRef.current.ArrowUp = true;
+        touchStateRef.current.jumpTouchId = t.identifier;
       }
+    }
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
-      if (touchStateRef.current.moveTouchId !== null) {
-          for (let i = 0; i < e.changedTouches.length; i++) {
-              const touch = e.changedTouches[i];
-              if (touch.identifier === touchStateRef.current.moveTouchId) {
-                  const deltaX = touch.clientX - touchStateRef.current.startX;
-                  const threshold = 15;
-                  if (deltaX > threshold) {
-                      keysRef.current.ArrowRight = true;
-                      keysRef.current.ArrowLeft = false;
-                  } else if (deltaX < -threshold) {
-                      keysRef.current.ArrowLeft = true;
-                      keysRef.current.ArrowRight = false;
-                  } else {
-                      keysRef.current.ArrowLeft = false;
-                      keysRef.current.ArrowRight = false;
-                  }
-              }
-          }
+    if (!zonesEnabled || touchStateRef.current.moveTouchId === null) return;
+    for (let i = 0; i < e.changedTouches.length; i++) {
+      const t = e.changedTouches[i];
+      if (t.identifier === touchStateRef.current.moveTouchId) {
+        const dx = t.clientX - touchStateRef.current.startX;
+        const threshold = 15;
+        keysRef.current.ArrowRight = dx > threshold;
+        keysRef.current.ArrowLeft = dx < -threshold;
       }
+    }
   };
 
   const handleTouchEnd = (e: React.TouchEvent) => {
-      for (let i = 0; i < e.changedTouches.length; i++) {
-          const touch = e.changedTouches[i];
-          touchStateRef.current.touches.delete(touch.identifier);
-
-          if (touch.identifier === touchStateRef.current.moveTouchId) {
-              touchStateRef.current.moveTouchId = null;
-              keysRef.current.ArrowLeft = false;
-              keysRef.current.ArrowRight = false;
-          }
-          
-          if (touch.identifier === touchStateRef.current.jumpTouchId) {
-              touchStateRef.current.jumpTouchId = null;
-              keysRef.current.ArrowUp = false;
-          }
+    if (!zonesEnabled) return;
+    for (let i = 0; i < e.changedTouches.length; i++) {
+      const t = e.changedTouches[i];
+      if (t.identifier === touchStateRef.current.moveTouchId) {
+        touchStateRef.current.moveTouchId = null;
+        keysRef.current.ArrowLeft = false;
+        keysRef.current.ArrowRight = false;
       }
-      
-      if (e.touches.length === 0) {
-          keysRef.current.ArrowUp = false;
-          keysRef.current.ArrowLeft = false;
-          keysRef.current.ArrowRight = false;
-          touchStateRef.current.moveTouchId = null;
-          touchStateRef.current.jumpTouchId = null;
+      if (t.identifier === touchStateRef.current.jumpTouchId) {
+        touchStateRef.current.jumpTouchId = null;
+        keysRef.current.ArrowUp = false;
       }
+    }
+    if (e.touches.length === 0) {
+      keysRef.current.ArrowLeft = false;
+      keysRef.current.ArrowRight = false;
+      keysRef.current.ArrowUp = false;
+      touchStateRef.current.moveTouchId = null;
+      touchStateRef.current.jumpTouchId = null;
+    }
   };
 
-  return (
-    <div className="flex justify-center items-center h-screen w-screen bg-[#2c3e50] overflow-hidden font-press-start touch-none p-2 md:p-4 min-h-0 min-w-0">
-      <div 
-        ref={containerRef}
-        className="relative bg-[#87CEEB] shadow-[0_0_20px_rgba(0,0,0,0.5)] overflow-hidden shrink-0"
-        style={{
-            aspectRatio: '4/3',
-            width: 'min(100%, 800px)',
-            height: 'min(100%, 600px)'
-        }}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
-        onTouchCancel={handleTouchEnd}
-      >
-        <canvas 
-            ref={canvasRef} 
-            width={800}
-            height={600}
-            className="block w-full h-full [image-rendering:pixelated]"
-        />
-        
-        <div className="absolute top-0 left-0 w-full h-full pointer-events-none flex flex-col justify-between">
-            <div className="p-5 text-white drop-shadow-[2px_2px_0_#000] text-sm flex justify-between md:text-sm text-[10px]">
-                <span>Kyta: {score}</span>
-                <span>Pysyrõ: 1</span>
-            </div>
-        </div>
+  const currentLevelId = stateRef.current.currentLevelId;
+  const isLastLevel = currentLevelId >= levels.length;
+  const showVisibleControls = (controlMode === 'visible' || controlMode === 'both') && screen === 'playing';
 
-        {gameState !== 'playing' && (
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center bg-black/80 p-[30px] border-4 border-white text-white pointer-events-auto">
-                <h2 className="mt-0 text-[#FFB6C1] text-xl mb-4">
-                    {gameState === 'won' ? '¡Opa!' : '¡Mbarakaja omano!'}
-                </h2>
-                <p className="mb-4 text-sm leading-relaxed">
-                    {gameState === 'won' ? `Kyta: ${score}` : "Re'a yvýpe."}
-                </p>
-                <button 
-                    className="bg-[#4CAF50] border-4 border-white text-white py-[15px] px-[32px] text-center inline-block text-xs font-press-start cursor-pointer mt-5 shadow-[4px_4px_0_#000] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[2px_2px_0_#000]"
-                    onClick={resetGame}
-                >
-                    Eha'ã jey
-                </button>
-            </div>
-        )}
+  return (
+    <>
+      <div className="rotate-overlay">
+        <div style={{ fontSize: 36, marginBottom: 16 }}>🔄</div>
+        <div>Gira el iPad</div>
+        <div style={{ marginTop: 8, opacity: 0.7 }}>Pyahu kotyo &mdash; landscape</div>
       </div>
-    </div>
+
+      <div className="game-shell flex justify-center items-center h-screen w-screen bg-[#2c3e50] overflow-hidden font-press-start touch-none p-2 md:p-4 min-h-0 min-w-0">
+        <div
+          ref={containerRef}
+          className="relative bg-[#87CEEB] shadow-[0_0_20px_rgba(0,0,0,0.5)] overflow-hidden shrink-0"
+          style={{
+            aspectRatio: `${GAME_WIDTH}/${GAME_HEIGHT}`,
+            width: `min(100%, ${GAME_WIDTH}px)`,
+            height: `min(100%, ${GAME_HEIGHT}px)`
+          }}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+          onTouchCancel={handleTouchEnd}
+        >
+          <canvas
+            ref={canvasRef}
+            width={GAME_WIDTH}
+            height={GAME_HEIGHT}
+            className="block w-full h-full [image-rendering:pixelated]"
+          />
+
+          {showVisibleControls && <TouchControls onPress={handleTouchAction} />}
+
+          {screen === 'playing' && (
+            <button
+              onClick={togglePause}
+              className="absolute top-2 right-2 text-white text-[10px] bg-black/50 px-2 py-1 border border-white pointer-events-auto z-20"
+            >
+              ⏸
+            </button>
+          )}
+
+          {screen === 'menu' && (
+            <MainMenu
+              highScore={highScore}
+              unlockedLevel={unlockedLevel}
+              muted={muted}
+              onPlay={(id) => startLevel(id, false)}
+              onToggleMute={toggleMute}
+              onOpenSettings={openSettings}
+            />
+          )}
+
+          {screen === 'settings' && (
+            <SettingsScreen
+              controlMode={controlMode}
+              muted={muted}
+              onChangeControlMode={changeControlMode}
+              onToggleMute={toggleMute}
+              onClearProgress={handleClearProgress}
+              onBack={goToMenu}
+            />
+          )}
+
+          {screen === 'paused' && (
+            <ScreenOverlay
+              title="Pausa"
+              subtitle="Tecla P para continuar"
+              primaryLabel="Continuar"
+              onPrimary={togglePause}
+              secondaryLabel="Menú principal"
+              onSecondary={goToMenu}
+            />
+          )}
+
+          {screen === 'won' && (
+            <ScreenOverlay
+              title="¡Opa!"
+              subtitle={`Kyta: ${score}${isLastLevel ? '' : `\nNivel ${currentLevelId + 1} desbloqueado`}`}
+              primaryLabel={isLastLevel ? '¡Completaste todo!' : 'Siguiente nivel'}
+              onPrimary={() => isLastLevel ? goToMenu() : startLevel(currentLevelId + 1, true)}
+              secondaryLabel="Menú principal"
+              onSecondary={goToMenu}
+            />
+          )}
+
+          {screen === 'lost' && (
+            <ScreenOverlay
+              title="¡Mbarakaja omano!"
+              subtitle={`Re'a yvýpe.\nKyta final: ${score}`}
+              primaryLabel="Eha'ã jey"
+              onPrimary={() => startLevel(currentLevelId, false)}
+              secondaryLabel="Menú principal"
+              onSecondary={goToMenu}
+            />
+          )}
+
+          {screen === 'gameComplete' && (
+            <ScreenOverlay
+              title="¡Mbarakaja ipoty!"
+              subtitle={`Completaste todos los niveles.\nKyta total: ${score}`}
+              primaryLabel="Volver al menú"
+              onPrimary={goToMenu}
+            />
+          )}
+        </div>
+      </div>
+    </>
   );
 }
