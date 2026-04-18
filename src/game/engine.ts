@@ -12,8 +12,10 @@ import {
   streetCatPalette, streetCatSprite1, streetCatSprite2,
   tunaCanPalette, tunaCanSprite
 } from './sprites';
-import type { GameState, InputKeys, Particle, Player } from './types';
+import type { Enemy, GameState, InputKeys, Particle, Player } from './types';
 import { audio } from './audio';
+import { initBattle } from './battle/battle';
+import { BATTLE_STATS } from './battle/battleConfig';
 
 const aabb = (a: { x: number; y: number; w?: number; h?: number; width?: number; height?: number }, b: { x: number; y: number; w: number; h: number }) => {
   const aw = (a as any).w ?? (a as any).width;
@@ -154,6 +156,20 @@ const tryJump = (player: Player) => {
     return true;
   }
   return false;
+};
+
+/**
+ * Inicia el modo batalla pausando el update del mundo.
+ * Se invoca cuando Anubis choca con un enemigo que tiene stats de batalla (Fase 1: solo rocco).
+ * El engine normal no corre durante battle (update() hace early return cuando screen !== 'playing').
+ */
+const triggerBattle = (state: GameState, enemy: Enemy, index: number): boolean => {
+  if (state.player.invulnerableFrames > 0) return false;
+  if (!BATTLE_STATS[enemy.kind]) return false;
+  state.screen = 'battle';
+  state.battle = initBattle(enemy, index);
+  audio.play('powerup');
+  return true;
 };
 
 const damagePlayer = (state: GameState, hazardX: number) => {
@@ -322,7 +338,8 @@ export const update = (state: GameState, keys: InputKeys, onScoreChange: () => v
   }
   if (scoreChanged) onScoreChange();
 
-  for (const e of state.enemies) {
+  for (let i = 0; i < state.enemies.length; i++) {
+    const e = state.enemies[i];
     if (!e.alive) continue;
     if (e.kind === 'rocco') {
       // Hitbox de alerta = el doble del visual, centrado
@@ -337,15 +354,19 @@ export const update = (state: GameState, keys: InputKeys, onScoreChange: () => v
       const sneaking = player.isCrouching && Math.abs(player.vx) < 1;
       if (e.awakeTimer && e.awakeTimer > 0) {
         e.awakeTimer--;
-        if (inTouch) damagePlayer(state, e.x);
+        if (inTouch) {
+          if (triggerBattle(state, e, i)) return;
+          damagePlayer(state, e.x);
+        }
       } else if (inTouch || (inAlert && !sneaking)) {
         e.alertTimer = (e.alertTimer || 0) + 1;
         if (e.alertTimer > 60 || inTouch) {
           e.awakeTimer = 180;
           e.alertTimer = 0;
           audio.play('hit');
-          damagePlayer(state, e.x);
           spawnParticles(state, e.x + e.w / 2, e.y, 14, '#ff5050', 4);
+          if (triggerBattle(state, e, i)) return;
+          damagePlayer(state, e.x);
         }
       } else {
         if (e.alertTimer && e.alertTimer > 0) e.alertTimer = Math.max(0, e.alertTimer - 2);

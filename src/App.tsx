@@ -1,6 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { GAME_HEIGHT, GAME_WIDTH, SPEED_MULTIPLIERS } from './game/constants';
 import { createInitialState, loadLevel, render, renderHud, update } from './game/engine';
+import { updateBattle } from './game/battle/battle';
+import { renderBattle } from './game/battle/battleRender';
 import { audio } from './game/audio';
 import {
   clearProgress, getControlMode, getHighScore, getSpeedPreset, getUnlockedLevel,
@@ -114,9 +116,17 @@ export default function App() {
 
     const loop = () => {
       const s = stateRef.current;
-      update(s, keysRef.current, handleScoreChange, handleWin);
-      render(ctx, s);
-      renderHud(ctx, s, highScore);
+      const wasBattle = s.screen === 'battle';
+      if (wasBattle) {
+        updateBattle(s, keysRef.current);
+        renderBattle(ctx, s);
+        // Si la batalla cerró en este frame, sincronizar score UI (victoria sumó puntos)
+        if (s.screen !== 'battle') handleScoreChange();
+      } else {
+        update(s, keysRef.current, handleScoreChange, handleWin);
+        render(ctx, s);
+        renderHud(ctx, s, highScore);
+      }
       syncScreen();
       raf = requestAnimationFrame(loop);
     };
@@ -223,7 +233,8 @@ export default function App() {
 
   const currentLevelId = stateRef.current.currentLevelId;
   const isLastLevel = currentLevelId >= levels.length;
-  const showVisibleControls = (controlMode === 'visible' || controlMode === 'both') && screen === 'playing';
+  const showVisibleControls = (controlMode === 'visible' || controlMode === 'both') && (screen === 'playing' || screen === 'battle');
+  const inBattle = screen === 'battle';
 
   return (
     <>
@@ -254,7 +265,7 @@ export default function App() {
             className="block w-full h-full [image-rendering:pixelated]"
           />
 
-          {showVisibleControls && <TouchControls onPress={handleTouchAction} />}
+          {showVisibleControls && <TouchControls onPress={handleTouchAction} inBattle={inBattle} />}
 
           {screen === 'playing' && (
             <button

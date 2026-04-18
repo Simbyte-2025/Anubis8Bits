@@ -1,4 +1,6 @@
-export type GameScreen = 'menu' | 'levelSelect' | 'playing' | 'paused' | 'won' | 'lost' | 'gameComplete' | 'settings';
+import type { BattleState } from './battle/battleTypes';
+
+export type GameScreen = 'menu' | 'levelSelect' | 'playing' | 'paused' | 'won' | 'lost' | 'gameComplete' | 'settings' | 'battle';
 
 export type ControlMode = 'visible' | 'zones' | 'both';
 
@@ -116,6 +118,7 @@ export interface GameState {
   cameraMaxX: number;
   theme: LevelTheme;
   speedMultiplier: number;
+  battle?: BattleState;
 }
 
 export interface InputKeys {

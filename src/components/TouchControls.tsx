@@ -4,9 +4,10 @@ export type TouchAction = 'left' | 'right' | 'jump' | 'crouch';
 
 interface Props {
   onPress: (action: TouchAction, pressed: boolean) => void;
+  inBattle?: boolean;
 }
 
-export const TouchControls: React.FC<Props> = ({ onPress }) => {
+export const TouchControls: React.FC<Props> = ({ onPress, inBattle = false }) => {
   const activeRef = useRef<Record<number, TouchAction>>({});
 
   const start = (action: TouchAction) => (e: React.PointerEvent) => {
@@ -49,25 +50,27 @@ export const TouchControls: React.FC<Props> = ({ onPress }) => {
           ▶
         </button>
       </div>
+      {!inBattle && (
+        <button
+          aria-label="Sigilo"
+          onPointerDown={start('crouch')}
+          onPointerUp={end('crouch')}
+          onPointerCancel={end('crouch')}
+          onPointerLeave={end('crouch')}
+          className={`${baseBtn} absolute bottom-3 right-28 md:right-32 bg-[#7ec8ff]/90 w-14 h-14 md:w-16 md:h-16 text-xl md:text-2xl rounded-full`}
+        >
+          🤫
+        </button>
+      )}
       <button
-        aria-label="Sigilo"
-        onPointerDown={start('crouch')}
-        onPointerUp={end('crouch')}
-        onPointerCancel={end('crouch')}
-        onPointerLeave={end('crouch')}
-        className={`${baseBtn} absolute bottom-3 right-28 md:right-32 bg-[#7ec8ff]/90 w-14 h-14 md:w-16 md:h-16 text-xl md:text-2xl rounded-full`}
-      >
-        🤫
-      </button>
-      <button
-        aria-label="Saltar"
+        aria-label={inBattle ? 'Golpear' : 'Saltar'}
         onPointerDown={start('jump')}
         onPointerUp={end('jump')}
         onPointerCancel={end('jump')}
         onPointerLeave={end('jump')}
-        className={`${baseBtn} absolute bottom-3 right-3 bg-[#FF69B4]/90 w-20 h-20 md:w-24 md:h-24 text-2xl md:text-3xl rounded-full`}
+        className={`${baseBtn} absolute bottom-3 right-3 ${inBattle ? 'bg-[#ff4d6d]/95' : 'bg-[#FF69B4]/90'} w-20 h-20 md:w-24 md:h-24 text-2xl md:text-3xl rounded-full`}
       >
-        A
+        {inBattle ? '🐾' : 'A'}
       </button>
     </div>
   );
