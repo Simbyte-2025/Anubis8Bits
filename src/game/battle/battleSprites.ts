@@ -1,6 +1,3 @@
-// Sprites exclusivos del modo batalla: Anubis de espaldas y enemigos de frente.
-// Estilo consistente con los sprites side-scroll del juego (paletas tipo Anubis).
-
 export const anubisBack = [
   [0,0,0,1,0,0,0,1,0,0,0],
   [0,0,1,1,1,0,1,1,1,0,0],
@@ -19,7 +16,6 @@ export const anubisBackPalette: Record<number, string> = {
   3: '#4B3621'    // detalle lomo
 };
 
-// Anubis de espaldas atacando — patas al frente, zarpazo
 export const anubisBackAttack = [
   [0,0,0,1,0,0,0,1,0,0,0],
   [0,0,1,1,1,0,1,1,1,0,0],
@@ -32,7 +28,6 @@ export const anubisBackAttack = [
   [0,0,0,1,0,0,0,1,0,0,0]
 ];
 
-// Rocco de frente — siamés anciano agresivo, ojos azul siamés
 export const roccoFront = [
   [0,1,1,0,0,0,0,0,0,1,1,0],
   [1,3,3,1,0,1,1,0,1,3,3,1],
@@ -54,7 +49,6 @@ export const roccoFrontPalette: Record<number, string> = {
   5: '#9a2a1a'     // boca gruñendo
 };
 
-// Gato callejero de frente (preparado para F3, aún sin usar)
 export const streetCatFront = [
   [0,0,0,1,0,0,0,1,0,0,0],
   [0,0,1,3,1,0,1,3,1,0,0],
@@ -74,7 +68,6 @@ export const streetCatFrontPalette: Record<number, string> = {
   4: '#ffd24a'
 };
 
-// Perro de frente (preparado para F3, aún sin usar)
 export const dogFront = [
   [0,0,0,1,1,0,1,1,0,0,0,0],
   [0,0,1,2,2,1,2,2,1,0,0,0],

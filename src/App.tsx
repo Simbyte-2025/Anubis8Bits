@@ -116,18 +116,23 @@ export default function App() {
 
     const loop = () => {
       const s = stateRef.current;
-      const wasBattle = s.screen === 'battle';
-      if (wasBattle) {
-        updateBattle(s, keysRef.current);
-        renderBattle(ctx, s);
-        // Si la batalla cerró en este frame, sincronizar score UI (victoria sumó puntos)
-        if (s.screen !== 'battle') handleScoreChange();
-      } else {
-        update(s, keysRef.current, handleScoreChange, handleWin);
-        render(ctx, s);
-        renderHud(ctx, s, highScore);
+      try {
+        if (s.screen === 'battle') {
+          updateBattle(s, keysRef.current);
+          renderBattle(ctx, s);
+          // Si la batalla cerró en este frame, sincronizar score UI (victoria sumó puntos)
+          if (s.screen !== 'battle') handleScoreChange();
+        } else {
+          update(s, keysRef.current, handleScoreChange, handleWin);
+          render(ctx, s);
+          renderHud(ctx, s, highScore);
+        }
+        syncScreen();
+      } catch (err) {
+        // Mantenemos el rAF vivo aunque un tick lance — si no, el canvas se congela sin feedback
+        // eslint-disable-next-line no-console
+        console.error('[game loop]', err);
       }
-      syncScreen();
       raf = requestAnimationFrame(loop);
     };
     loop();

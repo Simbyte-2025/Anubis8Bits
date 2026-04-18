@@ -8,8 +8,6 @@ export interface BattleEnemyStats {
   lungeFrames: number;     // frames totales del ataque (lunge + retorno)
 }
 
-// Stats por tipo de enemigo. En Fase 1 solo rocco se usa en práctica,
-// pero dejamos los otros listos para activarlos desde engine en F3.
 export const BATTLE_STATS: Record<EnemyKind, BattleEnemyStats> = {
   bat:       { hp: 3,  damage: 1, attackInterval: 70,  telegraphFrames: 25, lungeFrames: 24 },
   beetle:    { hp: 3,  damage: 1, attackInterval: 80,  telegraphFrames: 28, lungeFrames: 26 },
@@ -19,11 +17,11 @@ export const BATTLE_STATS: Record<EnemyKind, BattleEnemyStats> = {
 };
 
 export const BATTLE_PLAYER = {
-  baseSpeed: 7,          // velocidad lateral durante batalla
-  playerScale: 6,        // escala del sprite anubis de espaldas (9 cols * 6 = 54 px)
-  attackAnimFrames: 15,  // duración de la animación de tap
-  attackImpactFrame: 8,  // frame exacto donde se calcula hit
-  hitReach: 120,         // |player.x - enemy.x| debe ser menor para acertar
+  baseSpeed: 7,
+  playerScale: 6,
+  attackAnimFrames: 15,
+  attackImpactFrame: 8,
+  hitReach: 120,          // rango |player.x - enemy.x| para que un tap impacte
   hurtInvulnFrames: 45,
   hitEnemyInvulnFrames: 18
 };

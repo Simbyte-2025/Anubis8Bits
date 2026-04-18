@@ -158,11 +158,6 @@ const tryJump = (player: Player) => {
   return false;
 };
 
-/**
- * Inicia el modo batalla pausando el update del mundo.
- * Se invoca cuando Anubis choca con un enemigo que tiene stats de batalla (Fase 1: solo rocco).
- * El engine normal no corre durante battle (update() hace early return cuando screen !== 'playing').
- */
 const triggerBattle = (state: GameState, enemy: Enemy, index: number): boolean => {
   if (state.player.invulnerableFrames > 0) return false;
   if (!BATTLE_STATS[enemy.kind]) return false;

@@ -26,6 +26,8 @@ export interface BattlePlayer {
   animTimer: number;
   invuln: number;
   speed: number;
+  hits: number;
+  maxHits: number;
 }
 
 export interface BattleEnemy {

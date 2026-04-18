@@ -7,7 +7,6 @@ import {
   roccoFront, roccoFrontPalette,
   streetCatFront, streetCatFrontPalette
 } from './battleSprites';
-import { BATTLE_PLAYER_MAX_HITS, getBattlePlayerHits } from './battle';
 
 const drawArena = (ctx: CanvasRenderingContext2D, frame: number) => {
   // Cielo nocturno
@@ -60,6 +59,11 @@ const drawShadow = (ctx: CanvasRenderingContext2D, cx: number, cy: number, scale
 const getEnemySprite = (kind: string) => {
   if (kind === 'rocco') return { matrix: roccoFront, palette: roccoFrontPalette };
   if (kind === 'dog') return { matrix: dogFront, palette: dogFrontPalette };
+  if (kind === 'streetCat') return { matrix: streetCatFront, palette: streetCatFrontPalette };
+  if ((import.meta as any).env?.DEV) {
+    // eslint-disable-next-line no-console
+    console.warn('[battle] sprite missing for kind:', kind, '— falling back to streetCat');
+  }
   return { matrix: streetCatFront, palette: streetCatFrontPalette };
 };
 
@@ -81,16 +85,14 @@ const drawPixelBar = (
 
 const drawHud = (ctx: CanvasRenderingContext2D, state: GameState) => {
   const battle = state.battle!;
-  const hits = getBattlePlayerHits(battle);
-  const hp = BATTLE_PLAYER_MAX_HITS - hits;
+  const hp = battle.player.maxHits - battle.player.hits;
 
-  // Anubis — corazones arriba izquierda
   ctx.font = "10px 'Press Start 2P', monospace";
   ctx.fillStyle = '#000';
   ctx.fillText('ANUBIS', 22, 36);
   ctx.fillStyle = '#ffb6d9';
   ctx.fillText('ANUBIS', 20, 34);
-  for (let i = 0; i < BATTLE_PLAYER_MAX_HITS; i++) {
+  for (let i = 0; i < battle.player.maxHits; i++) {
     const x = 20 + i * 28;
     const y = 44;
     const filled = i < hp;
@@ -153,7 +155,7 @@ export const renderBattle = (ctx: CanvasRenderingContext2D, state: GameState) =>
 
   drawArena(ctx, battle.frame);
 
-  // Orden por profundidad: el que esté más arriba en Y se dibuja primero
+  // Painter's algorithm: menor Y (más lejos) se dibuja primero
   const entities = [
     { kind: 'enemy' as const, y: battle.enemy.y },
     { kind: 'player' as const, y: battle.player.y }
@@ -202,7 +204,7 @@ export const renderBattle = (ctx: CanvasRenderingContext2D, state: GameState) =>
 
   ctx.restore();
 
-  // HUD se dibuja SIN screen shake
+  // HUD fuera del translate para que no tiemble con el screen shake
   drawHud(ctx, state);
 
   // Banner de intro / outcome
