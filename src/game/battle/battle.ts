@@ -86,7 +86,7 @@ const closeBattle = (state: GameState, result: 'won' | 'lost') => {
     state.score += bonus;
     audio.play('win');
   } else if (result === 'lost') {
-    state.player.lives -= battle.enemy.damage;
+    if (!state.infiniteLives) state.player.lives -= battle.enemy.damage;
     if (state.player.lives < 0) state.player.lives = 0;
     audio.play('death');
     if (worldEnemy) {

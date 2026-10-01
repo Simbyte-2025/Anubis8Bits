@@ -1,4 +1,4 @@
-import { COLORS, GAME_HEIGHT, GAME_WIDTH, PHYSICS, PLAYER } from './constants';
+import { COLORS, GAME_HEIGHT, PHYSICS, PLAYER, VIEW } from './constants';
 import { getLevel } from './levels';
 import {
   batPalette, batSprite1, batSprite2,
@@ -6,13 +6,13 @@ import {
   cardboardBoxPalette, cardboardBoxSprite,
   catPalette, catSpriteCrouch, catSpriteJump, catSpriteRun1, catSpriteRun2, catSpriteSit,
   dogPalette, dogSprite1, dogSprite2,
-  drawSprite, heartPalette, heartSprite,
+  drawSprite, drawSpriteOutline, heartPalette, heartSprite,
   mousePalette, mouseSprite,
   roccoAwake, roccoPalette, roccoSleep,
   streetCatPalette, streetCatSprite1, streetCatSprite2,
   tunaCanPalette, tunaCanSprite
 } from './sprites';
-import type { Enemy, GameState, InputKeys, Particle, Player } from './types';
+import type { Checkpoint, Enemy, GameState, InputKeys, Particle, Player } from './types';
 import { audio } from './audio';
 import { initBattle } from './battle/battle';
 import { BATTLE_STATS } from './battle/battleConfig';
@@ -36,10 +36,12 @@ export const createInitialState = (): GameState => ({
   enemies: [],
   powerUps: [],
   particles: [],
+  checkpoints: [],
   goal: null,
-  cameraMaxX: GAME_WIDTH,
+  cameraMaxX: VIEW.width,
   theme: 'day',
-  speedMultiplier: 1
+  speedMultiplier: 1,
+  infiniteLives: false
 });
 
 type LoadedImage = { img: HTMLImageElement; loaded: boolean };
@@ -51,7 +53,7 @@ const bgImageSrc: Record<string, string> = {
 };
 const ensureBgImage = (theme: string): LoadedImage | null => {
   const src = bgImageSrc[theme];
-  if (!src) return null;
+  if (!src || typeof Image === 'undefined') return null;
   if (bgImages[theme]) return bgImages[theme];
   const img = new Image();
   const entry: LoadedImage = { img, loaded: false };
@@ -117,6 +119,7 @@ export const loadLevel = (state: GameState, levelId: number, keepLives: boolean)
   }));
   state.powerUps = level.powerUps.map((p) => ({ ...p, collected: false }));
   state.particles = [];
+  state.checkpoints = (level.checkpoints ?? []).map((c) => ({ ...c, active: false }));
   state.goal = { ...level.goal };
   state.player = createPlayer(level.player.x, level.player.y);
   state.player.lives = previousLives;
@@ -186,7 +189,7 @@ const damagePlayer = (state: GameState, hazardX: number) => {
     spawnParticles(state, player.x + player.width / 2, player.y + player.height / 2, 10, '#a86b3a', 4);
     return;
   }
-  player.lives -= 1;
+  if (!state.infiniteLives) player.lives -= 1;
   player.invulnerableFrames = PLAYER.invulnerabilityFrames;
   player.vx = hazardX < player.x ? PLAYER.knockbackX : -PLAYER.knockbackX;
   player.vy = PLAYER.knockbackY;
@@ -290,6 +293,17 @@ export const update = (state: GameState, keys: InputKeys, onScoreChange: () => v
   if (player.inBox) {
     player.boxFrames++;
     if (player.boxFrames > 600) player.inBox = false;
+  }
+
+  for (const cp of state.checkpoints) {
+    if (cp.active || !player.isGrounded) continue;
+    if (player.x + player.width / 2 >= cp.x) {
+      cp.active = true;
+      player.spawnX = cp.x - player.width / 2;
+      player.spawnY = cp.y - PLAYER.height;
+      audio.play('checkpoint');
+      spawnParticles(state, cp.x + 4, cp.y - 70, 14, '#7aff80', 3);
+    }
   }
 
   if (state.goal && aabb(player, state.goal)) {
@@ -412,13 +426,9 @@ export const update = (state: GameState, keys: InputKeys, onScoreChange: () => v
   }
 
   if (player.y > GAME_HEIGHT + 100) {
-    if (player.lives > 1) {
-      player.lives--;
-      player.invulnerableFrames = PLAYER.invulnerabilityFrames;
-      player.x = player.spawnX;
-      player.y = player.spawnY;
-      player.vx = 0;
-      player.vy = 0;
+    if (state.infiniteLives || player.lives > 1) {
+      if (!state.infiniteLives) player.lives--;
+      respawnPlayer(state);
       audio.play('hit');
     } else {
       player.lives = 0;
@@ -427,15 +437,65 @@ export const update = (state: GameState, keys: InputKeys, onScoreChange: () => v
     }
   }
 
-  const cameraMargin = 300;
-  if (player.x > state.cameraX + GAME_WIDTH - cameraMargin) {
-    state.cameraX = player.x - GAME_WIDTH + cameraMargin;
-  } else if (player.x < state.cameraX + cameraMargin && state.cameraX > 0) {
-    state.cameraX = player.x - cameraMargin;
+  updateCamera(state);
+};
+
+// Mantiene a Anubis entre el 30% y el 50% del ancho visible: siempre se ve
+// lo que viene adelante y nunca queda bajo los botones de la izquierda.
+const updateCamera = (state: GameState) => {
+  const player = state.player;
+  const width = VIEW.width;
+  const leftMargin = Math.round(width * 0.3);
+  const rightMargin = Math.round(width * 0.5);
+  if (player.x > state.cameraX + width - rightMargin) {
+    state.cameraX = player.x - width + rightMargin;
+  } else if (player.x < state.cameraX + leftMargin && state.cameraX > 0) {
+    state.cameraX = player.x - leftMargin;
   }
-  if (state.cameraX < 0) state.cameraX = 0;
-  const camMax = state.cameraMaxX - GAME_WIDTH;
+  const camMax = Math.max(0, state.cameraMaxX - width);
   if (state.cameraX > camMax) state.cameraX = camMax;
+  if (state.cameraX < 0) state.cameraX = 0;
+};
+
+const respawnPlayer = (state: GameState) => {
+  const player = state.player;
+  if (player.isCrouching) {
+    player.isCrouching = false;
+    player.height = PLAYER.height;
+  }
+  player.x = player.spawnX;
+  player.y = player.spawnY;
+  player.vx = 0;
+  player.vy = 0;
+  player.isGrounded = false;
+  player.invulnerableFrames = PLAYER.respawnInvulnerabilityFrames;
+  // Recentrar la cámara de inmediato para que el reaparecer no se vea como un salto.
+  state.cameraX = player.x - Math.round(VIEW.width * 0.3);
+  updateCamera(state);
+};
+
+const PLATFORM_OUTLINE = '#120a10';
+const PLATFORM_HIGHLIGHT = 'rgba(255, 240, 220, 0.55)';
+const PLAYER_OUTLINE = '#1a0f14';
+
+const drawCheckpoint = (ctx: CanvasRenderingContext2D, cp: Checkpoint, frame: number) => {
+  const poleH = 72;
+  const top = cp.y - poleH;
+  ctx.fillStyle = PLATFORM_OUTLINE;
+  ctx.fillRect(cp.x - 2, top - 2, 8, poleH + 2);
+  ctx.fillStyle = '#e8e0d0';
+  ctx.fillRect(cp.x, top, 4, poleH);
+  const wave = cp.active ? Math.round(Math.sin(frame * 0.15) * 2) : 0;
+  ctx.fillStyle = PLATFORM_OUTLINE;
+  ctx.fillRect(cp.x + 2, top + wave - 2, 40, 28);
+  ctx.fillStyle = cp.active ? '#7aff80' : '#9a8f9f';
+  ctx.fillRect(cp.x + 4, top + wave, 36, 24);
+  // Huella de gato en la bandera
+  ctx.fillStyle = cp.active ? '#2a6b34' : '#5e5466';
+  ctx.fillRect(cp.x + 17, top + wave + 11, 10, 8);
+  ctx.fillRect(cp.x + 13, top + wave + 5, 4, 4);
+  ctx.fillRect(cp.x + 20, top + wave + 3, 4, 4);
+  ctx.fillRect(cp.x + 27, top + wave + 5, 4, 4);
 };
 
 const drawParallaxBackground = (ctx: CanvasRenderingContext2D, state: GameState) => {
@@ -446,16 +506,27 @@ const drawParallaxBackground = (ctx: CanvasRenderingContext2D, state: GameState)
       const img = bgEntry.img;
       const scale = GAME_HEIGHT / img.naturalHeight;
       const drawW = img.naturalWidth * scale;
-      const offset = (state.cameraX * 0.35) % drawW;
-      for (let x = -offset; x < GAME_WIDTH; x += drawW) {
-        ctx.drawImage(img, x, 0, drawW, GAME_HEIGHT);
+      // Copias alternadas en espejo: los bordes coinciden y no se ve el corte
+      // entre una repetición y la siguiente en pantallas anchas.
+      const scroll = state.cameraX * 0.35;
+      const firstTile = Math.floor(scroll / drawW);
+      for (let i = firstTile, x = firstTile * drawW - scroll; x < VIEW.width; i++, x += drawW) {
+        if (i % 2 === 0) {
+          ctx.drawImage(img, x, 0, drawW, GAME_HEIGHT);
+        } else {
+          ctx.save();
+          ctx.translate(x + drawW, 0);
+          ctx.scale(-1, 1);
+          ctx.drawImage(img, 0, 0, drawW, GAME_HEIGHT);
+          ctx.restore();
+        }
       }
     } else {
       const grad = ctx.createLinearGradient(0, 0, 0, GAME_HEIGHT);
       grad.addColorStop(0, theme === 'sunset' ? '#ff7e5f' : '#1a1a3a');
       grad.addColorStop(1, theme === 'sunset' ? '#feb47b' : '#3a2a4a');
       ctx.fillStyle = grad;
-      ctx.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
+      ctx.fillRect(0, 0, VIEW.width, GAME_HEIGHT);
     }
     return;
   }
@@ -464,18 +535,18 @@ const drawParallaxBackground = (ctx: CanvasRenderingContext2D, state: GameState)
     grad.addColorStop(0, '#5a3a22');
     grad.addColorStop(1, '#3a2412');
     ctx.fillStyle = grad;
-    ctx.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
+    ctx.fillRect(0, 0, VIEW.width, GAME_HEIGHT);
     // wallpaper stripes
     ctx.fillStyle = 'rgba(255, 200, 120, 0.06)';
     for (let i = 0; i < 30; i++) {
-      const x = (i * 60 - state.cameraX * 0.4) % (GAME_WIDTH + 60);
-      const xx = x < -60 ? x + GAME_WIDTH + 60 : x;
+      const x = (i * 60 - state.cameraX * 0.4) % (VIEW.width + 60);
+      const xx = x < -60 ? x + VIEW.width + 60 : x;
       ctx.fillRect(xx, 0, 30, GAME_HEIGHT);
     }
     // moon through window (top-right)
     ctx.fillStyle = '#fff8d0';
     ctx.beginPath();
-    ctx.arc(GAME_WIDTH - 100, 80, 28, 0, Math.PI * 2);
+    ctx.arc(VIEW.width - 100, 80, 28, 0, Math.PI * 2);
     ctx.fill();
     return;
   }
@@ -495,13 +566,13 @@ const drawParallaxBackground = (ctx: CanvasRenderingContext2D, state: GameState)
     grad.addColorStop(1, '#ffe4b5');
     ctx.fillStyle = grad;
   }
-  ctx.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
+  ctx.fillRect(0, 0, VIEW.width, GAME_HEIGHT);
 
   if (theme === 'night') {
     ctx.fillStyle = '#fff';
     for (let i = 0; i < 50; i++) {
-      const x = (i * 173 - state.cameraX * 0.1) % GAME_WIDTH;
-      const xx = x < 0 ? x + GAME_WIDTH : x;
+      const x = (i * 173 - state.cameraX * 0.1) % VIEW.width;
+      const xx = x < 0 ? x + VIEW.width : x;
       const y = (i * 71) % (GAME_HEIGHT / 2);
       const tw = (Math.sin(state.frameCount * 0.05 + i) + 1) / 2;
       ctx.globalAlpha = 0.4 + tw * 0.6;
@@ -510,7 +581,7 @@ const drawParallaxBackground = (ctx: CanvasRenderingContext2D, state: GameState)
     ctx.globalAlpha = 1;
     ctx.fillStyle = '#ffe9a8';
     ctx.beginPath();
-    ctx.arc(GAME_WIDTH - 100, 100, 40, 0, Math.PI * 2);
+    ctx.arc(VIEW.width - 100, 100, 40, 0, Math.PI * 2);
     ctx.fill();
   }
 
@@ -529,15 +600,15 @@ const drawParallaxBackground = (ctx: CanvasRenderingContext2D, state: GameState)
   if (theme !== 'desert') {
     ctx.fillStyle = theme === 'night' ? 'rgba(180,180,210,0.4)' : 'rgba(255,255,255,0.7)';
     for (let i = 0; i < 12; i++) {
-      const x = (i * 320 - state.cameraX * 0.5) % (GAME_WIDTH * 2);
-      const xx = x < -100 ? x + GAME_WIDTH * 2 : x;
+      const x = (i * 320 - state.cameraX * 0.5) % (VIEW.width * 2);
+      const xx = x < -100 ? x + VIEW.width * 2 : x;
       ctx.fillRect(xx, 80 + (i % 3) * 30, 80, 24);
       ctx.fillRect(xx + 30, 70 + (i % 3) * 30, 60, 40);
     }
   } else {
     ctx.fillStyle = '#fff';
     ctx.beginPath();
-    ctx.arc(GAME_WIDTH - 120, 110, 50, 0, Math.PI * 2);
+    ctx.arc(VIEW.width - 120, 110, 50, 0, Math.PI * 2);
     ctx.fill();
   }
 };
@@ -558,11 +629,19 @@ export const render = (ctx: CanvasRenderingContext2D, state: GameState) => {
     else if (state.theme === 'sunset') { topColor = '#8b3a3a'; bodyColor = '#3a1a1a'; }
     else if (state.theme === 'neighborhood') { topColor = '#3a4a5a'; bodyColor = '#1a1a2a'; }
     else if (state.theme === 'indoors') { topColor = '#a86b3a'; bodyColor = '#5a3a22'; }
+    // Contorno oscuro + borde superior claro: la plataforma se distingue
+    // siempre del fondo, aunque el fondo sea una ilustración del mismo tono.
+    ctx.fillStyle = PLATFORM_OUTLINE;
+    ctx.fillRect(p.x - 3, p.y - 3, p.w + 6, p.h + 6);
     ctx.fillStyle = isHazard ? COLORS.spike : topColor;
     ctx.fillRect(p.x, p.y, p.w, p.h);
     ctx.fillStyle = bodyColor;
     ctx.fillRect(p.x, p.y + 10, p.w, p.h - 10);
+    ctx.fillStyle = PLATFORM_HIGHLIGHT;
+    ctx.fillRect(p.x, p.y, p.w, 3);
   }
+
+  for (const cp of state.checkpoints) drawCheckpoint(ctx, cp, state.frameCount);
 
   if (state.goal) {
     const g = state.goal;
@@ -614,19 +693,24 @@ export const render = (ctx: CanvasRenderingContext2D, state: GameState) => {
     if (!e.alive) continue;
     if (e.kind === 'beetle') {
       const sprite = e.animFrame === 0 ? beetleSprite1 : beetleSprite2;
+      drawSpriteOutline(ctx, sprite, PLATFORM_OUTLINE, e.x, e.y, 3, e.vx > 0, 2);
       drawSprite(ctx, sprite, beetlePalette, e.x, e.y, 3, e.vx > 0);
     } else if (e.kind === 'bat') {
       const sprite = e.animFrame === 0 ? batSprite1 : batSprite2;
+      drawSpriteOutline(ctx, sprite, PLATFORM_OUTLINE, e.x, e.y, 3, e.vx > 0, 2);
       drawSprite(ctx, sprite, batPalette, e.x, e.y, 3, e.vx > 0);
     } else if (e.kind === 'streetCat') {
       const sprite = e.animFrame === 0 ? streetCatSprite1 : streetCatSprite2;
+      drawSpriteOutline(ctx, sprite, PLATFORM_OUTLINE, e.x, e.y, 3, e.vx > 0, 2);
       drawSprite(ctx, sprite, streetCatPalette, e.x, e.y, 3, e.vx > 0);
     } else if (e.kind === 'dog') {
       const sprite = e.animFrame === 0 ? dogSprite1 : dogSprite2;
+      drawSpriteOutline(ctx, sprite, PLATFORM_OUTLINE, e.x, e.y, 3, e.vx > 0, 2);
       drawSprite(ctx, sprite, dogPalette, e.x, e.y, 3, e.vx > 0);
     } else if (e.kind === 'rocco') {
       const awake = (e.awakeTimer || 0) > 0;
       const sprite = awake ? roccoAwake : roccoSleep;
+      drawSpriteOutline(ctx, sprite, PLATFORM_OUTLINE, e.x, e.y, 3, false, 2);
       drawSprite(ctx, sprite, roccoPalette, e.x, e.y, 3, false);
       if (!awake) {
         // Z animadas sobre Rocco dormido
@@ -660,6 +744,7 @@ export const render = (ctx: CanvasRenderingContext2D, state: GameState) => {
     if (player.inBox) {
       drawSprite(ctx, cardboardBoxSprite, cardboardBoxPalette, player.x + 8, player.y + (player.isCrouching ? 0 : 24), 4, false);
     } else {
+      drawSpriteOutline(ctx, sprite, PLAYER_OUTLINE, player.x, player.y, player.scale, !player.facingRight);
       drawSprite(ctx, sprite, catPalette, player.x, player.y, player.scale, !player.facingRight);
     }
   }
@@ -696,7 +781,7 @@ export const renderHud = (ctx: CanvasRenderingContext2D, state: GameState, highS
   ctx.fillText(`Récord: ${highScore}`, 20, 50);
 
   for (let i = 0; i < state.player.lives; i++) {
-    drawSprite(ctx, heartSprite, heartPalette, GAME_WIDTH - 100 + i * 32, 20, 3, false);
+    drawSprite(ctx, heartSprite, heartPalette, VIEW.width - 100 + i * 32, 20, 3, false);
   }
 
   if (state.player.hasDoubleJump) {

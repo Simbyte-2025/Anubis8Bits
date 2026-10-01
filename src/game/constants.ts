@@ -1,5 +1,20 @@
+// Resolución lógica base. La altura es fija; el ancho visible se adapta a la
+// proporción de la pantalla (VIEW.width) para no deformar el juego en celulares.
 export const GAME_WIDTH = 800;
 export const GAME_HEIGHT = 600;
+export const MIN_VIEW_WIDTH = 800;
+export const MAX_VIEW_WIDTH = 1400;
+
+export const VIEW = { width: GAME_WIDTH, height: GAME_HEIGHT };
+
+export const viewWidthForAspect = (aspect: number): number => {
+  if (!Number.isFinite(aspect) || aspect <= 0) return GAME_WIDTH;
+  const raw = Math.round((GAME_HEIGHT * aspect) / 2) * 2;
+  return Math.max(MIN_VIEW_WIDTH, Math.min(MAX_VIEW_WIDTH, raw));
+};
+
+// Simulación a 60 pasos por segundo, independiente de los Hz de la pantalla.
+export const FIXED_STEP_MS = 1000 / 60;
 
 export const COLORS = {
   sky: '#FFB6C1',
@@ -49,6 +64,7 @@ export const PLAYER = {
   hitboxInsetY: 8,
   startLives: 3,
   invulnerabilityFrames: 90,
+  respawnInvulnerabilityFrames: 150,
   knockbackX: 6,
   knockbackY: -10
 } as const;
@@ -57,7 +73,8 @@ export const STORAGE_KEYS = {
   highScore: 'kittenJump.highScore',
   unlockedLevel: 'kittenJump.unlockedLevel',
   controlMode: 'kittenJump.controlMode',
-  speedPreset: 'kittenJump.speedPreset'
+  speedPreset: 'kittenJump.speedPreset',
+  infiniteLives: 'kittenJump.infiniteLives'
 } as const;
 
 export const SPEED_MULTIPLIERS: Record<'slow' | 'normal' | 'fast', number> = {

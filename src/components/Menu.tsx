@@ -14,12 +14,12 @@ interface MenuProps {
 export const MainMenu: React.FC<MenuProps> = ({
   highScore, unlockedLevel, muted, onPlay, onToggleMute, onOpenSettings
 }) => (
-  <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80 text-white p-4 md:p-6 pointer-events-auto overflow-auto">
+  <div className="absolute inset-0 flex flex-col items-center justify-center-safe bg-black/80 text-white p-4 md:p-6 pointer-events-auto overflow-auto">
     <h1 className="text-[#FFB6C1] text-2xl md:text-4xl mb-2 text-center">Anubis Escape</h1>
     <p className="text-[10px] md:text-sm mb-4 opacity-80">Las aventuras de una gata curiosa</p>
     <p className="text-[10px] md:text-xs mb-4">Hi-Score: {highScore}</p>
 
-    <div className="flex flex-col gap-2 md:gap-3 w-full max-w-xs">
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 md:gap-3 w-full max-w-xs sm:max-w-xl">
       {levels.map((lvl) => {
         const locked = lvl.id > unlockedLevel;
         return (
@@ -54,7 +54,7 @@ export const MainMenu: React.FC<MenuProps> = ({
 
     <div className="mt-4 text-[8px] md:text-[10px] opacity-80 text-center max-w-md leading-relaxed">
       <p>← → moverse · ↑ / Space saltar · P pausa · M mute</p>
-      <p>Móvil: usa los botones en pantalla</p>
+      <p>Móvil: usa los botones en pantalla · las banderas guardan tu avance</p>
     </div>
   </div>
 );
@@ -63,6 +63,8 @@ interface SettingsProps {
   controlMode: ControlMode;
   speedPreset: SpeedPreset;
   muted: boolean;
+  infiniteLives: boolean;
+  onToggleInfiniteLives: () => void;
   onChangeControlMode: (mode: ControlMode) => void;
   onChangeSpeedPreset: (p: SpeedPreset) => void;
   onToggleMute: () => void;
@@ -71,7 +73,7 @@ interface SettingsProps {
 }
 
 export const SettingsScreen: React.FC<SettingsProps> = ({
-  controlMode, speedPreset, muted,
+  controlMode, speedPreset, muted, infiniteLives, onToggleInfiniteLives,
   onChangeControlMode, onChangeSpeedPreset, onToggleMute, onClearProgress, onBack
 }) => {
   const opt = (mode: ControlMode, label: string, desc: string) => (
@@ -101,7 +103,7 @@ export const SettingsScreen: React.FC<SettingsProps> = ({
   );
 
   return (
-    <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/85 text-white p-4 md:p-6 pointer-events-auto overflow-auto">
+    <div className="absolute inset-0 flex flex-col items-center justify-center-safe bg-black/85 text-white p-4 md:p-6 pointer-events-auto overflow-auto">
       <h2 className="text-[#FFB6C1] text-xl md:text-2xl mb-4">⚙ Ajustes</h2>
 
       <div className="w-full max-w-sm flex flex-col gap-2 md:gap-3">
@@ -109,6 +111,16 @@ export const SettingsScreen: React.FC<SettingsProps> = ({
         {speedOpt('slow', '🐢 Tranquilo', 'Más fácil — 70% velocidad')}
         {speedOpt('normal', '🐈 Normal', '100% velocidad')}
         {speedOpt('fast', '⚡ Rápido', 'Más difícil — 130% velocidad')}
+
+        <button
+          onClick={onToggleInfiniteLives}
+          className={`text-left border-4 border-white py-2 px-3 text-[10px] md:text-xs font-press-start shadow-[4px_4px_0_#000] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[2px_2px_0_#000] ${
+            infiniteLives ? 'bg-[#4CAF50]' : 'bg-[#333]'
+          }`}
+        >
+          <div>{infiniteLives ? '● ' : '○ '}💖 Vidas infinitas</div>
+          <div className="text-[8px] md:text-[10px] opacity-70 mt-1">Anubis nunca pierde: si cae, vuelve a la última bandera</div>
+        </button>
 
         <div className="h-2" />
 

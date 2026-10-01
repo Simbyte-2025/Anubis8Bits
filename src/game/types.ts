@@ -88,6 +88,13 @@ export interface Player {
   spawnY: number;
 }
 
+export interface Checkpoint {
+  x: number;
+  /** Altura del suelo donde se planta la bandera (borde superior de la plataforma). */
+  y: number;
+  active: boolean;
+}
+
 export interface LevelData {
   id: number;
   name: string;
@@ -98,6 +105,7 @@ export interface LevelData {
   coins: Omit<Coin, 'collected'>[];
   enemies: Omit<Enemy, 'vx' | 'vy' | 'baseY' | 'alive' | 'animFrame'>[];
   powerUps: Omit<PowerUp, 'collected'>[];
+  checkpoints?: Omit<Checkpoint, 'active'>[];
   goal: Platform;
 }
 
@@ -114,10 +122,12 @@ export interface GameState {
   enemies: Enemy[];
   powerUps: PowerUp[];
   particles: Particle[];
+  checkpoints: Checkpoint[];
   goal: Platform | null;
   cameraMaxX: number;
   theme: LevelTheme;
   speedMultiplier: number;
+  infiniteLives: boolean;
   battle?: BattleState;
 }
 

@@ -1,4 +1,4 @@
-type SfxName = 'jump' | 'doubleJump' | 'coin' | 'powerup' | 'hit' | 'death' | 'win' | 'land';
+type SfxName = 'jump' | 'doubleJump' | 'coin' | 'powerup' | 'hit' | 'death' | 'win' | 'land' | 'checkpoint';
 
 class AudioEngine {
   private ctx: AudioContext | null = null;
@@ -7,6 +7,7 @@ class AudioEngine {
 
   private ensure(): AudioContext | null {
     if (this.muted) return null;
+    if (typeof window === 'undefined') return null;
     if (!this.ctx) {
       const Ctor = (window.AudioContext || (window as any).webkitAudioContext) as typeof AudioContext | undefined;
       if (!Ctor) return null;
@@ -80,6 +81,9 @@ class AudioEngine {
         [523, 659, 784, 1047, 1319].forEach((f, i) => setTimeout(() => this.blip(f, 0.16, 'triangle'), i * 100));
         break;
       case 'land': this.blip(140, 0.05, 'square', 80, 0.3); break;
+      case 'checkpoint':
+        [784, 988, 1175].forEach((f, i) => setTimeout(() => this.blip(f, 0.1, 'square'), i * 70));
+        break;
     }
   }
 }

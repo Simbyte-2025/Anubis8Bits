@@ -1,12 +1,13 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { GAME_HEIGHT, GAME_WIDTH, SPEED_MULTIPLIERS } from './game/constants';
+import { GAME_HEIGHT, SPEED_MULTIPLIERS, VIEW, viewWidthForAspect } from './game/constants';
+import { createFixedStepper } from './game/loop';
 import { createInitialState, loadLevel, render, renderHud, update } from './game/engine';
 import { updateBattle } from './game/battle/battle';
 import { renderBattle } from './game/battle/battleRender';
 import { audio } from './game/audio';
 import {
-  clearProgress, getControlMode, getHighScore, getSpeedPreset, getUnlockedLevel,
-  setControlMode, setHighScore, setSpeedPreset, setUnlockedLevel
+  clearProgress, getControlMode, getHighScore, getInfiniteLives, getSpeedPreset, getUnlockedLevel,
+  setControlMode, setHighScore, setInfiniteLives, setSpeedPreset, setUnlockedLevel
 } from './game/storage';
 import { levels } from './game/levels';
 import type { ControlMode, GameScreen, GameState, InputKeys, SpeedPreset } from './game/types';
@@ -22,6 +23,9 @@ export default function App() {
   });
   const audioUnlockedRef = useRef(false);
 
+  // Solo en desarrollo: acceso al estado para pruebas visuales automatizadas.
+  if (import.meta.env.DEV) (window as unknown as { __anubis: GameState }).__anubis = stateRef.current;
+
   const [, force] = useState(0);
   const [screen, setScreen] = useState<GameScreen>('menu');
   const [score, setScore] = useState(0);
@@ -30,10 +34,43 @@ export default function App() {
   const [muted, setMuted] = useState(audio.isMuted());
   const [controlMode, setControlModeState] = useState<ControlMode>(getControlMode());
   const [speedPreset, setSpeedPresetState] = useState<SpeedPreset>(getSpeedPreset());
+  const [infiniteLives, setInfiniteLivesState] = useState(getInfiniteLives());
+  const shellRef = useRef<HTMLDivElement>(null);
+  const [fit, setFit] = useState({ viewW: VIEW.width, cssW: VIEW.width, cssH: GAME_HEIGHT });
 
   useEffect(() => {
     stateRef.current.speedMultiplier = SPEED_MULTIPLIERS[speedPreset];
   }, [speedPreset]);
+
+  useEffect(() => {
+    stateRef.current.infiniteLives = infiniteLives;
+  }, [infiniteLives]);
+
+  // Ajusta el canvas a la pantalla sin deformarlo: altura lógica fija (600) y
+  // ancho lógico según la proporción disponible, escalado uniforme.
+  useEffect(() => {
+    const shell = shellRef.current;
+    if (!shell) return;
+    const measure = () => {
+      const rect = shell.getBoundingClientRect();
+      const style = getComputedStyle(shell);
+      const availW = rect.width - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
+      const availH = rect.height - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom);
+      if (availW <= 0 || availH <= 0) return;
+      const viewW = viewWidthForAspect(availW / availH);
+      const scale = Math.min(availW / viewW, availH / GAME_HEIGHT);
+      VIEW.width = viewW;
+      setFit({ viewW, cssW: Math.floor(viewW * scale), cssH: Math.floor(GAME_HEIGHT * scale) });
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(shell);
+    window.addEventListener('orientationchange', measure);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener('orientationchange', measure);
+    };
+  }, []);
 
   const syncScreen = () => {
     if (stateRef.current.screen !== screen) setScreen(stateRef.current.screen);
@@ -61,6 +98,7 @@ export default function App() {
   const startLevel = (id: number, keepLives: boolean) => {
     loadLevel(stateRef.current, id, keepLives);
     stateRef.current.speedMultiplier = SPEED_MULTIPLIERS[speedPreset];
+    stateRef.current.infiniteLives = infiniteLives;
     setScore(0);
     setScreen('playing');
     force((n) => n + 1);
@@ -94,6 +132,12 @@ export default function App() {
     setSpeedPresetState(p);
   };
 
+  const toggleInfiniteLives = () => {
+    const next = !infiniteLives;
+    setInfiniteLives(next);
+    setInfiniteLivesState(next);
+  };
+
   const handleClearProgress = () => {
     clearProgress();
     setHighScoreState(0);
@@ -113,17 +157,30 @@ export default function App() {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
     let raf = 0;
+    const stepper = createFixedStepper();
 
-    const loop = () => {
+    // La lógica avanza en pasos fijos de 1/60 s (misma velocidad en pantallas
+    // de 60, 90 o 120 Hz); el dibujo ocurre una vez por cuadro de pantalla.
+    const tick = () => {
+      const s = stateRef.current;
+      if (s.screen === 'battle') {
+        updateBattle(s, keysRef.current);
+        // Si la batalla cerró en este paso, sincronizar score UI (victoria sumó puntos)
+        if (s.screen !== 'battle') handleScoreChange();
+      } else {
+        update(s, keysRef.current, handleScoreChange, handleWin);
+      }
+    };
+
+    const loop = (now: number) => {
       const s = stateRef.current;
       try {
+        stepper.advance(now, tick);
+        if (canvas.width !== VIEW.width) canvas.width = VIEW.width;
+        ctx.imageSmoothingEnabled = false;
         if (s.screen === 'battle') {
-          updateBattle(s, keysRef.current);
           renderBattle(ctx, s);
-          // Si la batalla cerró en este frame, sincronizar score UI (victoria sumó puntos)
-          if (s.screen !== 'battle') handleScoreChange();
         } else {
-          update(s, keysRef.current, handleScoreChange, handleWin);
           render(ctx, s);
           renderHud(ctx, s, highScore);
         }
@@ -135,7 +192,7 @@ export default function App() {
       }
       raf = requestAnimationFrame(loop);
     };
-    loop();
+    raf = requestAnimationFrame(loop);
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.code === 'KeyP') { e.preventDefault(); togglePause(); return; }
@@ -245,19 +302,24 @@ export default function App() {
     <>
       <div className="rotate-overlay">
         <div style={{ fontSize: 36, marginBottom: 16 }}>🔄</div>
-        <div>Gira el iPad</div>
+        <div>Gira la pantalla</div>
         <div style={{ marginTop: 8, opacity: 0.7 }}>Modo horizontal</div>
       </div>
 
-      <div className="game-shell flex justify-center items-center h-screen w-screen bg-[#2c3e50] overflow-hidden font-press-start touch-none p-2 md:p-4 min-h-0 min-w-0">
+      <div
+        ref={shellRef}
+        className="game-shell flex justify-center items-center h-[100dvh] w-screen bg-[#2c3e50] overflow-hidden font-press-start touch-none min-h-0 min-w-0"
+        style={{
+          paddingTop: 'env(safe-area-inset-top)',
+          paddingBottom: 'env(safe-area-inset-bottom)',
+          paddingLeft: 'env(safe-area-inset-left)',
+          paddingRight: 'env(safe-area-inset-right)'
+        }}
+      >
         <div
           ref={containerRef}
           className="relative bg-[#87CEEB] shadow-[0_0_20px_rgba(0,0,0,0.5)] overflow-hidden shrink-0"
-          style={{
-            aspectRatio: `${GAME_WIDTH}/${GAME_HEIGHT}`,
-            width: `min(100%, ${GAME_WIDTH}px)`,
-            height: `min(100%, ${GAME_HEIGHT}px)`
-          }}
+          style={{ width: fit.cssW, height: fit.cssH }}
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
@@ -265,7 +327,7 @@ export default function App() {
         >
           <canvas
             ref={canvasRef}
-            width={GAME_WIDTH}
+            width={fit.viewW}
             height={GAME_HEIGHT}
             className="block w-full h-full [image-rendering:pixelated]"
           />
@@ -297,6 +359,8 @@ export default function App() {
               controlMode={controlMode}
               speedPreset={speedPreset}
               muted={muted}
+              infiniteLives={infiniteLives}
+              onToggleInfiniteLives={toggleInfiniteLives}
               onChangeControlMode={changeControlMode}
               onChangeSpeedPreset={changeSpeedPreset}
               onToggleMute={toggleMute}
@@ -330,7 +394,7 @@ export default function App() {
           {screen === 'lost' && (
             <ScreenOverlay
               title="¡Anubis cayó!"
-              subtitle={`Te caíste al vacío.\nPuntos finales: ${score}`}
+              subtitle={`Se acabaron las vidas.\nPuntos: ${score}`}
               primaryLabel="Intentar de nuevo"
               onPrimary={() => startLevel(currentLevelId, false)}
               secondaryLabel="Menú principal"

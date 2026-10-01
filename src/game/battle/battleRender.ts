@@ -1,4 +1,4 @@
-import { GAME_HEIGHT, GAME_WIDTH } from '../constants';
+import { GAME_HEIGHT, GAME_WIDTH, VIEW } from '../constants';
 import { drawSprite } from '../sprites';
 import type { GameState } from '../types';
 import {
@@ -8,19 +8,21 @@ import {
   streetCatFront, streetCatFrontPalette
 } from './battleSprites';
 
-const drawArena = (ctx: CanvasRenderingContext2D, frame: number) => {
+// La arena lógica mide GAME_WIDTH; en pantallas anchas se dibuja centrada y
+// el fondo se extiende `side` píxeles hacia cada lado.
+const drawArena = (ctx: CanvasRenderingContext2D, frame: number, side: number) => {
   // Cielo nocturno
   const horizon = GAME_HEIGHT / 2 - 20;
   const bgGrad = ctx.createLinearGradient(0, 0, 0, horizon);
   bgGrad.addColorStop(0, '#100b21');
   bgGrad.addColorStop(1, '#3b2f52');
   ctx.fillStyle = bgGrad;
-  ctx.fillRect(0, 0, GAME_WIDTH, horizon);
+  ctx.fillRect(-side, 0, GAME_WIDTH + side * 2, horizon);
 
   // Estrellas titilantes
   ctx.fillStyle = 'rgba(255,255,255,0.5)';
   for (let i = 0; i < 28; i++) {
-    const x = (i * 137) % GAME_WIDTH;
+    const x = ((i * 137) % (GAME_WIDTH + side * 2)) - side;
     const y = (i * 83) % horizon;
     const tw = (Math.sin(frame * 0.06 + i) + 1) / 2;
     ctx.globalAlpha = 0.3 + tw * 0.6;
@@ -30,7 +32,7 @@ const drawArena = (ctx: CanvasRenderingContext2D, frame: number) => {
 
   // Suelo con líneas de fuga (perspectiva tejado)
   ctx.fillStyle = '#1e2433';
-  ctx.fillRect(0, horizon, GAME_WIDTH, GAME_HEIGHT - horizon);
+  ctx.fillRect(-side, horizon, GAME_WIDTH + side * 2, GAME_HEIGHT - horizon);
 
   ctx.strokeStyle = '#111520';
   ctx.lineWidth = 3;
@@ -43,8 +45,8 @@ const drawArena = (ctx: CanvasRenderingContext2D, frame: number) => {
   }
   for (let i = 1; i <= 8; i++) {
     const y = horizon + Math.pow(i, 1.4) * 12;
-    ctx.moveTo(0, y);
-    ctx.lineTo(GAME_WIDTH, y);
+    ctx.moveTo(-side, y);
+    ctx.lineTo(GAME_WIDTH + side, y);
   }
   ctx.stroke();
 };
@@ -147,13 +149,16 @@ const drawBanner = (
 export const renderBattle = (ctx: CanvasRenderingContext2D, state: GameState) => {
   if (!state.battle) return;
   const battle = state.battle;
+  const side = Math.max(0, (VIEW.width - GAME_WIDTH) / 2);
 
+  ctx.save();
+  ctx.translate(side, 0);
   ctx.save();
   if (battle.screenShake > 0) {
     ctx.translate((Math.random() - 0.5) * 12, (Math.random() - 0.5) * 12);
   }
 
-  drawArena(ctx, battle.frame);
+  drawArena(ctx, battle.frame, side);
 
   // Painter's algorithm: menor Y (más lejos) se dibuja primero
   const entities = [
@@ -215,8 +220,16 @@ export const renderBattle = (ctx: CanvasRenderingContext2D, state: GameState) =>
       : 'UN ENEMIGO';
     drawBanner(ctx, `¡${label} APARECIÓ!`, 'Muévete para esquivar · Toca A para golpear', '#ffe066');
   } else if (battle.screen === 'won') {
-    drawBanner(ctx, '¡ANUBIS GANA!', 'Zarpazo certero. Rocco se rinde.', '#7aff80');
+    const who = battle.enemy.kind === 'rocco' ? 'Rocco se rinde.'
+      : battle.enemy.kind === 'dog' ? 'El perro sale corriendo.'
+      : 'Zarpazo certero.';
+    drawBanner(ctx, '¡ANUBIS GANA!', who, '#7aff80');
   } else if (battle.screen === 'lost') {
-    drawBanner(ctx, '¡ROCCO TE ATRAPÓ!', 'Perdiste una vida. Vuelves al tejado.', '#ff4d6d');
+    const title = battle.enemy.kind === 'rocco' ? '¡ROCCO TE ATRAPÓ!'
+      : battle.enemy.kind === 'dog' ? '¡EL PERRO TE ATRAPÓ!'
+      : '¡TE ATRAPARON!';
+    const sub = state.infiniteLives ? 'Respira y vuelve a intentarlo.' : 'Perdiste una vida. ¡Sigue!';
+    drawBanner(ctx, title, sub, '#ff4d6d');
   }
+  ctx.restore();
 };

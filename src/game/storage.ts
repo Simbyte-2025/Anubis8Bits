@@ -61,3 +61,15 @@ export const clearProgress = () => {
     localStorage.removeItem(STORAGE_KEYS.unlockedLevel);
   } catch {}
 };
+
+export const getInfiniteLives = (): boolean => {
+  try {
+    return localStorage.getItem(STORAGE_KEYS.infiniteLives) === '1';
+  } catch {
+    return false;
+  }
+};
+
+export const setInfiniteLives = (on: boolean) => {
+  try { localStorage.setItem(STORAGE_KEYS.infiniteLives, on ? '1' : '0'); } catch {}
+};

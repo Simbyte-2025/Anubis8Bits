@@ -337,3 +337,32 @@ export const drawSprite = (
   }
   ctx.restore();
 };
+
+// Silueta engrosada del sprite en un solo color; dibujarla antes del sprite
+// deja un contorno que lo separa de fondos con mucho detalle.
+export const drawSpriteOutline = (
+  ctx: CanvasRenderingContext2D,
+  matrix: number[][],
+  color: string,
+  posX: number,
+  posY: number,
+  scale: number,
+  flipH: boolean,
+  thickness = 3
+) => {
+  ctx.save();
+  ctx.translate(posX, posY);
+  if (flipH) {
+    ctx.scale(-1, 1);
+    ctx.translate(-matrix[0].length * scale, 0);
+  }
+  ctx.fillStyle = color;
+  for (let r = 0; r < matrix.length; r++) {
+    for (let c = 0; c < matrix[r].length; c++) {
+      if (matrix[r][c] !== 0) {
+        ctx.fillRect(c * scale - thickness, r * scale - thickness, scale + thickness * 2, scale + thickness * 2);
+      }
+    }
+  }
+  ctx.restore();
+};

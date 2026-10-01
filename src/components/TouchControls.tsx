@@ -24,7 +24,7 @@ export const TouchControls: React.FC<Props> = ({ onPress, inBattle = false }) =>
   };
 
   const baseBtn =
-    'select-none touch-none flex items-center justify-center font-press-start text-white border-4 border-white shadow-[4px_4px_0_#000] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[2px_2px_0_#000] pointer-events-auto';
+    'select-none touch-none flex items-center justify-center font-press-start text-white border-4 border-white/70 shadow-[3px_3px_0_rgba(0,0,0,0.5)] active:brightness-125 active:translate-x-[2px] active:translate-y-[2px] active:shadow-[2px_2px_0_#000] pointer-events-auto';
 
   return (
     <div className="absolute inset-0 pointer-events-none z-10">
@@ -35,7 +35,7 @@ export const TouchControls: React.FC<Props> = ({ onPress, inBattle = false }) =>
           onPointerUp={end('left')}
           onPointerCancel={end('left')}
           onPointerLeave={end('left')}
-          className={`${baseBtn} bg-[#4CAF50]/90 w-16 h-16 md:w-20 md:h-20 text-2xl md:text-3xl rounded-full`}
+          className={`${baseBtn} bg-[#4CAF50]/45 w-16 h-16 md:w-20 md:h-20 text-2xl md:text-3xl rounded-full`}
         >
           ◀
         </button>
@@ -45,7 +45,7 @@ export const TouchControls: React.FC<Props> = ({ onPress, inBattle = false }) =>
           onPointerUp={end('right')}
           onPointerCancel={end('right')}
           onPointerLeave={end('right')}
-          className={`${baseBtn} bg-[#4CAF50]/90 w-16 h-16 md:w-20 md:h-20 text-2xl md:text-3xl rounded-full`}
+          className={`${baseBtn} bg-[#4CAF50]/45 w-16 h-16 md:w-20 md:h-20 text-2xl md:text-3xl rounded-full`}
         >
           ▶
         </button>
@@ -57,7 +57,7 @@ export const TouchControls: React.FC<Props> = ({ onPress, inBattle = false }) =>
           onPointerUp={end('crouch')}
           onPointerCancel={end('crouch')}
           onPointerLeave={end('crouch')}
-          className={`${baseBtn} absolute bottom-3 right-28 md:right-32 bg-[#7ec8ff]/90 w-14 h-14 md:w-16 md:h-16 text-xl md:text-2xl rounded-full`}
+          className={`${baseBtn} absolute bottom-3 right-28 md:right-32 bg-[#7ec8ff]/45 w-14 h-14 md:w-16 md:h-16 text-xl md:text-2xl rounded-full`}
         >
           🤫
         </button>
@@ -68,7 +68,7 @@ export const TouchControls: React.FC<Props> = ({ onPress, inBattle = false }) =>
         onPointerUp={end('jump')}
         onPointerCancel={end('jump')}
         onPointerLeave={end('jump')}
-        className={`${baseBtn} absolute bottom-3 right-3 ${inBattle ? 'bg-[#ff4d6d]/95' : 'bg-[#FF69B4]/90'} w-20 h-20 md:w-24 md:h-24 text-2xl md:text-3xl rounded-full`}
+        className={`${baseBtn} absolute bottom-3 right-3 ${inBattle ? 'bg-[#ff4d6d]/95' : 'bg-[#FF69B4]/50'} w-20 h-20 md:w-24 md:h-24 text-2xl md:text-3xl rounded-full`}
       >
         {inBattle ? '🐾' : 'A'}
       </button>

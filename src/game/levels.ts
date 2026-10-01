@@ -2,14 +2,39 @@ import type { LevelData } from './types';
 
 const groundY = 500;
 const groundH = 100;
+const startX = 50;
 
-export const levels: LevelData[] = [
+// Todos los niveles se diseñaron empezando en x=0. Se desplazan LEAD_IN px a
+// la derecha y el primer suelo se alarga hacia atrás: así Anubis empieza
+// lejos de la esquina izquierda, donde están los botones táctiles.
+const LEAD_IN = 250;
+
+const withLeadIn = (level: LevelData): LevelData => {
+  const sx = <T extends { x: number }>(o: T): T => ({ ...o, x: o.x + LEAD_IN });
+  const platforms = level.platforms.map(sx);
+  const first = platforms.reduce((a, b) => (b.x < a.x ? b : a));
+  first.w += first.x;
+  first.x = 0;
+  return {
+    ...level,
+    cameraMaxX: level.cameraMaxX + LEAD_IN,
+    player: sx(level.player),
+    platforms,
+    coins: level.coins.map(sx),
+    enemies: level.enemies.map((e) => ({ ...sx(e), patrolMin: e.patrolMin + LEAD_IN, patrolMax: e.patrolMax + LEAD_IN })),
+    powerUps: level.powerUps.map(sx),
+    checkpoints: level.checkpoints?.map(sx),
+    goal: sx(level.goal)
+  };
+};
+
+const baseLevels: LevelData[] = [
   {
     id: 1,
     name: 'La Fuga',
     theme: 'sunset',
     cameraMaxX: 3200,
-    player: { x: 50, y: groundY - 52 },
+    player: { x: startX, y: groundY - 52 },
     platforms: [
       { x: 0, y: groundY, w: 500, h: groundH },
       { x: 600, y: 420, w: 140, h: 24 },
@@ -41,6 +66,7 @@ export const levels: LevelData[] = [
     powerUps: [
       { kind: 'doubleJump', x: 1480, y: 400, w: 24, h: 24 }
     ],
+    checkpoints: [{ x: 1820, y: groundY }],
     goal: { x: 3050, y: 280, w: 150, h: 24, isGoal: true }
   },
   {
@@ -48,7 +74,7 @@ export const levels: LevelData[] = [
     name: 'El Vecindario',
     theme: 'neighborhood',
     cameraMaxX: 4000,
-    player: { x: 50, y: groundY - 52 },
+    player: { x: startX, y: groundY - 52 },
     platforms: [
       { x: 0, y: groundY, w: 320, h: groundH },
       { x: 420, y: 460, w: 100, h: 24 },
@@ -96,6 +122,7 @@ export const levels: LevelData[] = [
       { kind: 'shield', x: 1610, y: groundY - 40, w: 24, h: 24 },
       { kind: 'doubleJump', x: 2600, y: 160, w: 24, h: 24 }
     ],
+    checkpoints: [{ x: 1620, y: groundY }, { x: 3260, y: groundY }],
     goal: { x: 3850, y: 380, w: 150, h: 24, isGoal: true }
   },
   {
@@ -103,7 +130,7 @@ export const levels: LevelData[] = [
     name: 'Los Callejones',
     theme: 'desert',
     cameraMaxX: 5000,
-    player: { x: 50, y: groundY - 52 },
+    player: { x: startX, y: groundY - 52 },
     platforms: [
       { x: 0, y: groundY, w: 280, h: groundH },
       { x: 380, y: 480, w: 70, h: 24 },
@@ -169,6 +196,7 @@ export const levels: LevelData[] = [
       { kind: 'extraLife', x: 2120, y: 180, w: 24, h: 24 },
       { kind: 'shield', x: 3520, y: 160, w: 24, h: 24 }
     ],
+    checkpoints: [{ x: 1420, y: groundY }, { x: 2740, y: groundY }, { x: 4140, y: groundY }],
     goal: { x: 4750, y: 380, w: 150, h: 24, isGoal: true }
   },
   {
@@ -176,7 +204,7 @@ export const levels: LevelData[] = [
     name: 'Los Tejados',
     theme: 'rooftops',
     cameraMaxX: 4600,
-    player: { x: 50, y: groundY - 52 },
+    player: { x: startX, y: groundY - 52 },
     platforms: [
       { x: 0, y: groundY, w: 320, h: groundH },
       { x: 400, y: 460, w: 160, h: 24 },
@@ -235,6 +263,7 @@ export const levels: LevelData[] = [
       { kind: 'doubleJump', x: 2520, y: 180, w: 24, h: 24 },
       { kind: 'extraLife', x: 3860, y: 240, w: 24, h: 24 }
     ],
+    checkpoints: [{ x: 1680, y: groundY }, { x: 3140, y: groundY }],
     goal: { x: 4350, y: 380, w: 200, h: 24, isGoal: true }
   },
   {
@@ -242,7 +271,7 @@ export const levels: LevelData[] = [
     name: 'El cuarto de Rocco',
     theme: 'indoors',
     cameraMaxX: 3000,
-    player: { x: 50, y: groundY - 52 },
+    player: { x: startX, y: groundY - 52 },
     platforms: [
       { x: 0, y: groundY, w: 400, h: groundH },                  // entrada
       { x: 480, y: 460, w: 120, h: 24 },                          // sofá
@@ -279,8 +308,11 @@ export const levels: LevelData[] = [
       { kind: 'doubleJump', x: 660, y: 360, w: 24, h: 24 },
       { kind: 'extraLife', x: 2500, y: 360, w: 24, h: 24 }
     ],
+    checkpoints: [{ x: 1500, y: groundY }],
     goal: { x: 2900, y: 280, w: 100, h: 24, isGoal: true }
   }
 ];
+
+export const levels: LevelData[] = baseLevels.map(withLeadIn);
 
 export const getLevel = (id: number): LevelData | undefined => levels.find((l) => l.id === id);
